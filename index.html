@@ -680,19 +680,44 @@
   
   function placeOrder() {
     if (cart.length === 0) return alert("Your cart is empty!");
+    
     const n = document.getElementById("name").value.trim();
     const f = document.getElementById("flat").value.trim();
     const m = document.getElementById("mobile").value.trim();
     const notes = document.getElementById("notes").value.trim();
-    if (!n || !f || !m) return alert("Please fill all details before placing the order.");
   
-    let msg = `*Snack Attack Order*%0A———————————%0A`;
-    cart.forEach(i => msg += `${i.name} x ${i.qty} = ₹${i.price * i.qty}%0A`);
+    if (!n || !f || !m) {
+      alert("Please fill all details before placing the order.");
+      return;
+    }
+  
+    // 🕒 Format current date and time
+    const now = new Date();
+    const options = { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" };
+    const formattedTime = now.toLocaleString("en-IN", options).replace(",", "");
+  
+    // 🧾 Build order message
+    let msg = `*Snack Attack Order*\n———————————\n`;
+    cart.forEach(i => {
+      msg += `${i.name} x ${i.qty} = ₹${i.price * i.qty}\n`;
+    });
+  
     const tot = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    msg += `———————————%0A*Total:* ₹${tot}%0A*Name:* ${n}%0A*Wing & Flat:* ${f}%0A*Mobile:* ${m}`;
-    if (notes) msg += `%0A*Notes:* ${encodeURIComponent(notes)}`;
-    window.open(`https://wa.me/919356396873?text=${msg}`, "_blank");
-    confettiBurst(); // ✨ Added confetti on order
+    msg += `———————————\n`;
+    msg += `*Total:* ₹${tot}\n`;
+    msg += `*Name:* ${n}\n`;
+    msg += `*Wing & Flat:* ${f}\n`;
+    msg += `*Mobile:* ${m}\n`;
+    msg += `*Ordered on:* ${formattedTime}`;
+  
+    if (notes) msg += `\n*Notes:* ${notes}`;
+  
+    // ✅ Encode entire message for WhatsApp
+    const encodedMsg = encodeURIComponent(msg);
+    const whatsappUrl = `https://wa.me/919356396873?text=${encodedMsg}`;
+  
+    window.open(whatsappUrl, "_blank");
+    confettiBurst();
     showToast("✅ Order opened in WhatsApp!");
   }
   
@@ -873,3 +898,5 @@ window.addEventListener("load", () => {
   </script>
   </body>
   </html>
+
+
