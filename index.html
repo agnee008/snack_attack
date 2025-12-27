@@ -6,150 +6,281 @@
 <meta name="theme-color" content="#ff6f00">
 <title>Snack Attack | Order Online</title>
 <style>
-  :root{
-    --orange:#ff6f00;
-    --amber:#ffb300;
-    --cream:#fffaf3;
-    --brown:#3b2b15;
-    --green:#0a8f08;
+  :root {
+    --orange: #ff6f00;
+    --amber: #ffb300;
+    --cream: #fffaf3;
+    --brown: #3b2b15;
+    --green: #0a8f08;
   }
-  *{box-sizing:border-box;}
-  body{margin:0;font-family:"Inter",Arial,sans-serif;background:var(--cream);color:var(--brown);}
-  header{text-align:center;background:var(--amber);padding:0.8rem;}
-  header img{width:120px;height:auto;border-radius:12px;}
-  h1{font-size:1.3rem;margin:0.4rem 0 0;}
-  .notice{background:#fff3cd;border-left:5px solid #ffc107;margin:1rem;border-radius:6px;padding:0.9rem;font-size:0.95rem;}
-  .notice a{color:var(--green);font-weight:600;text-decoration:none;}
-  nav{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;display:flex;overflow-x:auto;z-index:999;}
-  nav button{flex:1;min-width:110px;background:none;border:none;padding:.7rem;font-weight:600;color:var(--brown);cursor:pointer;white-space:nowrap;}
-  nav button:hover,nav button.active{background:var(--amber);color:#fff;}
-  section{padding:1rem;}
-  h2{color:var(--orange);margin:1rem 0 0.5rem;font-size:1.1rem;transition:all 0.3s ease;opacity:0.85;}
-  section:hover h2{transform:translateX(5px);opacity:1;}
-  .item{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;padding:.45rem 0;font-size:0.95rem;}
-  .item span:first-child{flex:1;padding-right:0.5rem;}
-  .item span.price{color:#222;font-weight:700;font-size:1rem;}
-  .item button{background:var(--orange);color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;font-size:0.9rem;}
-  .item button:active{background:#e65c00;}
-  .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:.6rem 1rem;border-radius:6px;opacity:0;transition:opacity .3s;font-size:0.9rem;z-index:9999;}
-  .toast.show{opacity:1;}
-  .delivery-banner{text-align:center;background:#fff8e1;padding:.6rem;font-size:0.9rem;color:#444;border-bottom:1px solid #ffe082;}
-  #cartToggle{position:fixed;bottom:0;right:0;background:var(--orange);color:#fff;padding:.9rem 1.3rem;border:none;border-radius:16px 0 0 0;font-weight:600;font-size:0.9rem;cursor:pointer;z-index:1000;}
-  #cart{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:3px solid var(--amber);padding:1rem;box-shadow:0 -4px 8px rgba(0,0,0,.15);border-radius:12px 12px 0 0;z-index:999;}
-  #cart h3{margin-top:0;}
-  table{width:100%;font-size:.9rem;}
-  table input{width:45px;text-align:center;}
-  #checkout,#repeatBtn{background:var(--green);color:#fff;border:none;width:100%;padding:.8rem;border-radius:8px;font-size:1rem;font-weight:600;margin-top:.6rem;}
-  #repeatBtn{background:#ffb300;}
-  footer{text-align:center;padding:1rem;font-size:0.85rem;background:#fff0d9;margin-top:3rem;line-height:1.4;}
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Inter", Arial, sans-serif;
+    background: var(--cream);
+    color: var(--brown);
+    scroll-behavior: smooth;
+  }
+  header { text-align: center; background: var(--amber); padding: 0.8rem; }
+  header img { width: 120px; height: auto; border-radius: 12px; }
+  h1 { font-size: 1.3rem; margin: 0.4rem 0 0; }
+  .notice {
+    background: #ffeb99; /* brighter yellow */
+    border-left: 5px solid #ffb300;
+    margin: 1rem;
+    border-radius: 6px;
+    padding: 0.9rem;
+    font-size: 0.95rem;
+    color: #3b2b15; /* dark readable text */
+    font-weight: 500;
+  }
+  .notice a {
+    color: #0a8f08;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .notice a:hover {
+    text-decoration: underline;
+  }
   
-  /* Quantity controls (when item added) */
-  .qty-controls {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: 8px;
+  .notice a { color: var(--green); font-weight: 600; text-decoration: none; }
+  nav {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    overflow-x: auto;
+    z-index: 999;
   }
-  .qty-btn {
+  nav button {
+    flex: 1;
+    min-width: 110px;
+    background: none;
+    border: none;
+    padding: .7rem;
+    font-weight: 600;
+    color: var(--brown);
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+  }
+  nav button:hover, nav button.active {
+    color: var(--orange);
+  }
+  /* ✨ Added: Animated underline for active category */
+  nav button::after {
+    content: "";
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: var(--orange);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+  }
+  nav button.active::after {
+    width: 60%;
+  }
+
+  section { padding: 1rem; }
+  h2 {
+    color: var(--orange);
+    margin: 1rem 0 0.5rem;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    opacity: 0.85;
+  }
+  section:hover h2 { transform: translateX(5px); opacity: 1; }
+
+  .item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding: .45rem 0;
+    font-size: 0.95rem;
+  }
+  .item span:first-child { flex: 1; padding-right: 0.5rem; font-weight: 600; }
+  .item span.price { color: #555; font-size: 0.9rem; }
+  .item button {
     background: var(--orange);
     color: #fff;
     border: none;
-    padding: 0.25rem 0.6rem;
-    border-radius: 50%;
-    font-size: 1rem;
+    padding: .35rem .7rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
     cursor: pointer;
-    font-weight: 700;
-    line-height: 1;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
   }
-  .qty-btn:active { background: #e65c00; }
-  .qty-number {
-    font-weight: 700;
-    color: var(--brown);
-    min-width: 20px;
+  .item button:active { background: #e65c00; }
+
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--green);
+    color: #fff;
+    padding: .6rem 1rem;
+    border-radius: 6px;
+    opacity: 0;
+    transition: opacity .3s;
+    font-size: 0.9rem;
+    z-index: 9999;
+  }
+  .toast.show { opacity: 1; }
+
+  .delivery-banner {
     text-align: center;
+    background: #fff8e1;
+    padding: .6rem;
+    font-size: 0.9rem;
+    color: #444;
+    border-bottom: 1px solid #ffe082;
   }
-  @media(max-width:600px){
-    h1{font-size:1.1rem;}
-    .item{font-size:0.9rem;}
-    nav button{min-width:90px;padding:.6rem;}
+
+  #cartToggle {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    background: var(--orange);
+    color: #fff;
+    padding: .9rem 1.3rem;
+    border: none;
+    border-radius: 16px 0 0 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    z-index: 1000;
+  }
+
+  #cart {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 3px solid var(--amber);
+    padding: 1rem;
+    box-shadow: 0 -4px 8px rgba(0,0,0,.15);
+    border-radius: 12px 12px 0 0;
+    z-index: 999;
+    transform: translateY(100%);
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(.25,.8,.5,1), opacity 0.4s ease;
+  }
+  #cart.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  #checkout, #repeatBtn {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    width: 100%;
+    padding: .8rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: .6rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  /* ✨ Added: Subtle pulse for Place Order button */
+  #checkout.pulse { animation: pulseEffect 1.6s infinite; }
+  @keyframes pulseEffect {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+
+  #repeatBtn { background: #ffb300; }
+  footer { text-align: center; padding: 1rem; font-size: 0.85rem; background: #fff0d9; margin-top: 3rem; }
+
+  #cart input[type="text"] {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #3b2b15;
+    border: 2px solid #ffb300;
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    margin: 0.3rem 0;
+    width: 100%;
+    background: #fffef8;
+  }
+  #cart input[type="text"]:focus {
+    border-color: #ff6f00;
+    box-shadow: 0 0 4px rgba(255, 111, 0, 0.5);
+    outline: none;
+  }
+
+  /* ✨ Added: Scroll-to-top button */
+  #scrollTopBtn {
+    position: fixed;
+    bottom: 85px;
+    right: 20px;
+    background: var(--orange);
+    color: #fff;
+    border: none;
+    padding: 0.6rem 0.8rem;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1500;
+  }
+  #scrollTopBtn.show {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+  }
+
+  /* ✨ Dark mode auto fix */
+  @media (prefers-color-scheme: dark) {
+    body { background: #1e1e1e; color: #eee; }
+    nav, #cart, footer { background: #2a2a2a; }
+    nav button {
+      color: #ffb84d; /* bright amber for readability */
+    }
+    nav button.active {
+      color: #ff6f00;
+    }
+    nav button:hover {
+      color: #ffa726;
+    }
+    nav button::after {
+      background: #ff6f00;
+    }
+    .item span.price { color: #ffcc80; }
+    .notice {
+      background: #3b2b15;
+      color: #ffe082;
+    }
   }
   
-#checkout {
-  position: relative;
-  z-index: 10;
-  margin-bottom: 80px; /* adds breathing space above browser nav */
-}
-
-#miniCartBar {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-#cart.showing #miniCartBar {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(20px);
-}
-
-/* Highlight key user input fields */
-#cart input[type="text"] {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #3b2b15;
-  border: 2px solid #ffb300;
-  border-radius: 8px;
-  padding: 0.6rem 0.8rem;
-  margin: 0.3rem 0;
-  width: 100%;
-  background: #fffef8;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-#cart input[type="text"]:focus {
-  border-color: #ff6f00;
-  box-shadow: 0 0 4px rgba(255, 111, 0, 0.5);
-  outline: none;
-}
-
-#cart input::placeholder {
-  color: #a87b3b;
-  font-weight: 500;
-}
-
-.item span:first-child {font-weight:600;}
-.item em {color:#e65c00;font-style:normal;font-size:0.85rem;margin-left:4px;}
-.item span.price {color:#555;font-size:0.9rem;}
-.divider{border-bottom:2px solid #ffe1b2;margin:1.5rem 0;}
-
-#cart {
-  transition: transform 0.4s ease, opacity 0.4s ease;
-  transform: translateY(0);
-}
-
 </style>
 </head>
-<body>
 
+<body>
 <header>
   <img src="./Snack_Attack_Logo.png" alt="Snack Attack Logo">
   <h1>Snack. Attack. Repeat.</h1>
 </header>
 
-<div class="delivery-banner">
- 🚴‍♂️ Delivery in 25–30 mins • Free within Yashwin Orizzonte
-</div>
+<div class="delivery-banner">🚴‍♂️ Delivery in 25–30 mins • Free within Yashwin Orizzonte</div>
 
 <section class="notice">
- 🍽️ <strong>Today's Dinner Meal:</strong> Check our 
+ 🍽️ <strong>Today's Dinner Meal:</strong> Check our
  <a href="https://chat.whatsapp.com/KrPBWTC7oN14HbrhXql2lK" target="_blank">Snack Attack WhatsApp Group</a> (5 – 6 PM) for the daily special!
 </section>
 
 <nav id="categoryNav">
- <button class="active" onclick="scrollToCategory('fries')">Fries</button>
+ <button class="active" onclick="scrollToCategory(event, 'fries')">Fries</button>
  <button onclick="scrollToCategory(event, 'cutlet')">Cutlets</button>
  <button onclick="scrollToCategory(event, 'paratha')">Parathas</button>
  <button onclick="scrollToCategory(event, 'sandwich')">Sandwiches</button>
@@ -158,9 +289,7 @@
  <button onclick="scrollToCategory(event, 'maggi')">Maggi</button>
  <button onclick="scrollToCategory(event, 'combo')">Combos</button>
  <button onclick="scrollToCategory(event, 'drinks')">Drinks</button>
- 
 </nav>
-
 <!-- 🍟 Fries & Finger Food Frenzy -->
 <section id="fries">
   <h2>🍟 Fries & Finger Food Frenzy</h2>
@@ -184,7 +313,6 @@
 <section id="cutlet">
   <h2>🥙 Cutlet & Pakoda Punch</h2>
   <div class="item" data-name="Kolkata Chicken Cutlet (2 pcs)"><span>🍗 Kolkata Chicken Cutlet (2 pcs) <em>🔥 Must Try! / Weekends Only</em></span><span class="price">₹179 <button onclick="addToCart('Kolkata Chicken Cutlet (2 pcs)',179)">Add</button></span></div>
-  <div class="item" data-name="Paneer Crunch Cutlet (2 pcs)"><span>🧀 Paneer Crunch Cutlet (2 pcs)</span><span class="price">₹129 <button onclick="addToCart('Paneer Crunch Cutlet (2 pcs)',129)">Add</button></span></div>
   <div class="item" data-name="Desi Chicken Pakoda (6 pcs)"><span>🍗 Desi Chicken Pakoda (6 pcs)</span><span class="price">₹169 <button onclick="addToCart('Desi Chicken Pakoda (6 pcs)',169)">Add</button></span></div>
   <div class="item" data-name="Crispy Onion Pakoda (6 pcs)"><span>🧅 Crispy Onion Pakoda (6 pcs) <em>🔥 Must Try!</em></span><span class="price">₹129 <button onclick="addToCart('Crispy Onion Pakoda (6 pcs)',129)">Add</button></span></div>
   <div class="item" data-name="Paneer Pakoda Bites (6 pcs)"><span>🧀 Paneer Pakoda Bites (6 pcs)</span><span class="price">₹149 <button onclick="addToCart('Paneer Pakoda Bites (6 pcs)',149)">Add</button></span></div>
@@ -320,41 +448,35 @@
 <!-- 🧾 Checkout Section -->
 <div id="toast" class="toast"></div>
 <button id="cartToggle" onclick="toggleCart()">🛒 View Cart (₹0)</button>
-
 <div id="cart">
   <div style="display:flex;justify-content:space-between;align-items:center;">
     <h3>🧾 Your Cart</h3>
-    <button id="minimizeCartBtn" onclick="minimizeCart()" 
+    <button id="minimizeCartBtn" onclick="minimizeCart()"
       style="background:none;border:none;color:#ff6f00;font-weight:600;cursor:pointer;font-size:0.9rem;">
       ⬇️ Minimize
     </button>
   </div>
 
+  <table id="cartTable"></table>
+  <p id="total" style="text-align:right;font-weight:600;margin-top:0.5rem;"></p>
 
   <div style="margin-top:.6rem;">
     <input type="text" id="name" placeholder="Name">
     <input type="text" id="flat" placeholder="Wing & Flat number (e.g. D-2601)">
-    <input type="text" id="mobile" placeholder="Mobile Number (10 digits only)">
-    <textarea id="notes" placeholder="Any special instructions? (e.g. less spicy, no onions)" 
-rows="1"
-style="width:100%;margin-top:8px;border:1px solid #ddd;border-radius:6px;padding:6px;font-family:inherit;resize:none;overflow:hidden;"
-oninput="autoGrow(this)"></textarea>
+    <input type="text" id="mobile" placeholder="Mobile Number">
+    <textarea id="notes" placeholder="Any special instructions? (e.g. less spicy, no onions)"
+      rows="1"
+      style="width:100%;margin-top:8px;border:1px solid #ddd;border-radius:6px;padding:6px;font-family:inherit;resize:none;overflow:hidden;"
+      oninput="autoGrow(this)"></textarea>
   </div>
-  
 
   <div id="repeatContainer" style="display:none;">
     <button id="repeatBtn" onclick="repeatOrder()">🔁 Repeat Last Order</button>
   </div>
-  <table id="cartTable"></table>
-  <p id="total" style="text-align:right;font-weight:600;margin-top:0.5rem;"></p>
+
   <div style="text-align:center;margin-top:1rem;">
     <p><strong>💰 Payment after delivery</strong></p>
-    <p style="color:#e65c00;font-weight:500;margin-top:0.5rem;">
-      😋 Taste first, pay later, because great food should win your heart before your wallet!
-    </p>
-    <p style="font-size:0.9rem;margin-top:0.3rem;">
-      QR for payment will be shared once food is delivered
-    </p>
+    <p style="color:#e65c00;font-weight:500;margin-top:0.5rem;">😋 Taste first, pay later — because great food should win your heart before your wallet!</p>
   </div>
 
   <button id="checkout" onclick="placeOrder()">✅ Place Order on WhatsApp</button>
@@ -367,214 +489,273 @@ oninput="autoGrow(this)"></textarea>
   <span style="color:#ff6f00;">Made with ❤️ in Kharadi</span>
 </footer>
 
+<button id="scrollTopBtn" onclick="scrollToTop()">⬆️</button>
+
 <script>
-let cart = [];
-const toast = document.getElementById("toast");
 
-function showToast(msg) {
-  toast.textContent = msg;
-  toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2000);
-}
-
-function autoGrow(element) {
-  element.style.height = "auto";
-  element.style.height = element.scrollHeight + "px";
-  if (element.scrollHeight < 60) element.style.height = "40px";
-}
-
-
-function toggleCart() {
-  const c = document.getElementById("cart");
-  const mini = document.getElementById("miniCartBar");
-  if (!mini) return;
-  const isOpen = c.style.display === "block";
-  c.style.display = isOpen ? "none" : "block";
-  if (!isOpen) {
-    mini.style.opacity = "0";
-    setTimeout(() => mini.style.display = "none", 200);
-  } else {
-    mini.style.display = "flex";
-    setTimeout(() => mini.style.opacity = "1", 100);
-  }
-}
-
-
-function scrollToCategory(event, id) {
-  document.getElementById(id).scrollIntoView({ behavior: "smooth" });
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  event.target.classList.add("active");
-}
-
-function addToCart(name, price) {
-  const existing = cart.find(i => i.name === name);
-  if (existing) {
-    existing.qty++;
-  } else {
-    cart.push({ name, price, qty: 1 });
-  }
-  renderCart();
-  renderMenuButtons();
-  showToast(`Added ${name}`);
-}
-
-function updateQty(i, q) {
-  if (q <= 0) {
-    removeItem(i);
-  } else {
-    cart[i].qty = q;
-  }
-  renderCart();
-  renderMenuButtons();
-}
-
-function removeItem(i) {
-  const itemName = cart[i].name;
-  cart.splice(i, 1);
-  renderCart();
-  renderMenuButtons();
-  showToast(`Removed ${itemName}`);
-}
-
-function minimizeCart() {
-  const cart = document.getElementById("cart");
-  cart.style.transition = "transform 0.4s ease, opacity 0.3s ease";
-  cart.style.opacity = "0";
-  cart.style.transform = "translateY(100%)";
-  setTimeout(() => {
-    cart.style.display = "none";
-    cart.style.opacity = "1";
-    cart.style.transform = "translateY(0)";
-  }, 400);
-
-  const miniBar = document.getElementById("miniCartBar");
-  miniBar.style.display = "flex";
-  miniBar.style.opacity = "1";
-}
-
-
-function renderMenuButtons() {
-  document.querySelectorAll(".item").forEach(div => {
-    const name = div.dataset.name;
-    const btnCell = div.querySelector("span.price");
-
-    // Store original price only once
-    if (!btnCell.dataset.price) {
-      const basePrice = parseInt(btnCell.textContent.replace(/[^\d]/g, '')) || 0;
-      btnCell.dataset.price = basePrice;
-    }
-
-    const price = parseInt(btnCell.dataset.price);
-    const existing = cart.find(i => i.name === name);
-
-    if (existing) {
-      btnCell.innerHTML = `
-        ₹${price}
-        <span class="qty-controls">
-          <button class="qty-btn" onclick="changeQty('${name}', -1)">−</button>
-          <span class="qty-number">${existing.qty}</span>
-          <button class="qty-btn" onclick="changeQty('${name}', 1)">+</button>
-        </span>`;
-    } else {
-      btnCell.innerHTML = `
-        ₹${price} 
-        <button onclick="addToCart('${name}', ${price})">Add</button>`;
-    }
-  });
-}
-
-
-
-function changeQty(name, delta) {
-  const item = cart.find(i => i.name === name);
-  if (!item) return;
-  item.qty += delta;
-  if (item.qty <= 0) {
-    cart = cart.filter(i => i.name !== name);
-  }
-  renderCart();
-  renderMenuButtons();
-}
-
-function renderCart() {
-  const t = document.getElementById("cartTable");
-  t.innerHTML = "";
-  let total = 0;
-
-  cart.forEach((it, i) => {
-    total += it.price * it.qty;
-    t.innerHTML += `
-      <tr>
-        <td>${it.name}</td>
-        <td>₹${it.price}</td>
-        <td><input type='number' min='1' value='${it.qty}' onchange='updateQty(${i}, this.value)'></td>
-        <td>₹${it.price * it.qty}</td>
-        <td><button onclick='removeItem(${i})' style='background:#dc3545;color:white;border:none;padding:3px 6px;border-radius:4px;cursor:pointer;'>🗑️</button></td>
-      </tr>`;
-  });
-
-  const itemCount = cart.reduce((a,b)=>a+b.qty,0);
-  document.getElementById("total").innerHTML = `<strong>Total: ₹${total}</strong>`;
-  document.getElementById("cartToggle").textContent = `🛒 View Cart (${itemCount} item${itemCount!==1?'s':''} – ₹${total})`;
-  localStorage.setItem("cartInfo", JSON.stringify(cart));
-}
-
-function placeOrder() {
-  if (cart.length === 0) { alert("Your cart is empty!"); return; }
-  const n = document.getElementById("name").value.trim();
-  const f = document.getElementById("flat").value.trim();
-  const m = document.getElementById("mobile").value.trim();
-  const notes = document.getElementById("notes").value.trim();
-  if (!n || !f || !m) { alert("Please fill all details before placing the order."); return; }
+  let cart = [];
+  const toast = document.getElementById("toast");
   
-
-  localStorage.setItem("userInfo", JSON.stringify({ n, f, m }));
-  localStorage.setItem("lastOrder", JSON.stringify(cart));
-
-  let msg = `*Snack Attack Order*%0A———————————%0A`;
-  cart.forEach(i => { msg += `${i.name} x ${i.qty} = ₹${i.price * i.qty}%0A`; });
-  const tot = cart.reduce((s,i)=>s+i.price*i.qty,0);
-  msg += `———————————%0A*Total:* ₹${tot}%0A*Name:* ${n}%0A*Flat/Tower:* ${f}%0A*Mobile:* ${m}`;
-if (notes) msg += `%0A*Notes:* ${encodeURIComponent(notes)}`;
-
-
-  window.open(`https://wa.me/919356396873?text=${msg}`,"_blank");
-  showToast("✅ Order opened in WhatsApp — confirm to complete!");
-}
-
-function repeatOrder() {
-  const last = JSON.parse(localStorage.getItem("lastOrder")||"[]");
-  if (last.length>0) {
-    cart = last;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 2000);
+  }
+  
+  function autoGrow(element) {
+    element.style.height = "auto";
+    element.style.height = element.scrollHeight + "px";
+  }
+  
+  function toggleCart() {
+    const c = document.getElementById("cart");
+    const isVisible = c.classList.toggle("show");
+    c.style.display = isVisible ? "block" : "none";
+    if (isVisible) window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  }
+  
+  function minimizeCart() {
+    const c = document.getElementById("cart");
+    c.classList.remove("show");
+    c.style.display = "none";
+  }
+  
+  /* ✅ Override renderCart to update mini cart bar + totals, but keep View Cart toggle working */
+  const originalRender = renderCart;
+  renderCart = function() {
+    originalRender();
+  
+    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+    const items = cart.reduce((sum, i) => sum + i.qty, 0);
+  
+    // Update mini floating bar
+    const miniBar = document.getElementById("miniCartBar");
+    if (items > 0) {
+      miniBar.style.display = "flex";
+      miniBar.innerHTML = `🛒 ${items} item${items !== 1 ? "s" : ""} • ₹${total}`;
+    } else {
+      miniBar.style.display = "none";
+    }
+  
+    // Sync View Cart button
+    const cartBtn = document.getElementById("cartToggle");
+    if (items > 0) {
+      cartBtn.innerText = `🛒 View Cart (${items} item${items > 1 ? "s" : ""} • ₹${total})`;
+    } else {
+      cartBtn.innerText = "🛒 View Cart (₹0)";
+    }
+  };
+  
+  
+  function scrollToCategory(event, id) {
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+    event.target.classList.add("active");
+    document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+  }
+  
+  function addToCart(name, price) {
+    const now = new Date();
+    const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+    const hour = now.getHours();
+  
+    // 🐔 Kolkata Chicken Cutlet – weekend only rule
+    if (name.toLowerCase().includes("kolkata chicken cutlet")) {
+      if (day !== 6 && day !== 0) {
+        const daysUntilWeekend = day < 6 ? 6 - day : (7 - day);
+        showToast(`🍗 Hold that hunger! Only ${daysUntilWeekend} more day${daysUntilWeekend > 1 ? "s" : ""} till our weekend-only Kolkata Cutlet is back in action!`);
+        return;
+      }
+    }
+  
+    // 🫓 Tawa Roti – evening only rule
+    if (name.toLowerCase().includes("tawa roti")) {
+      if (hour < 17 || hour >= 20) {
+        showToast(`🌙 Can’t add now — Tawa Roti is served fresh only between 5 PM and 8 PM!`);
+        return;
+      }
+    }
+  
+    // ✅ Regular add-to-cart logic
+    const itemDiv = document.querySelector(`.item[data-name="${name}"]`);
+    const existing = cart.find(i => i.name === name);
+  
+    if (existing) {
+      existing.qty++;
+    } else {
+      cart.push({ name, price, qty: 1 });
+    }
+  
     renderCart();
-    showToast("🔁 Last order restored!");
+    updateMenuButtons();
+    showToast(`Added ${name}`);
   }
-}
-
-window.onload = () => {
-  const u = JSON.parse(localStorage.getItem("userInfo") || "{}");
-  if (u.n) document.getElementById("name").value = u.n;
-  if (u.f) document.getElementById("flat").value = u.f;
-  if (u.m) document.getElementById("mobile").value = u.m;
-
-  const s = localStorage.getItem("cartInfo");
-  if (s) {
-    cart = JSON.parse(s);
+  
+  
+  
+  function renderCart() {
+    const t = document.getElementById("cartTable");
+    t.innerHTML = "";
+    let total = 0;
+  
+    cart.forEach((it, i) => {
+      total += it.price * it.qty;
+      t.innerHTML += `
+        <tr>
+          <td>${it.name}</td>
+          <td>₹${it.price}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick='changeQty(${i}, -1)' style='background:#ffb300;border:none;border-radius:4px;padding:3px 7px;color:#000;font-weight:700;cursor:pointer;'>−</button>
+              <span>${it.qty}</span>
+              <button onclick='changeQty(${i}, 1)' style='background:#ff6f00;border:none;border-radius:4px;padding:3px 7px;color:#fff;font-weight:700;cursor:pointer;'>+</button>
+            </div>
+          </td>
+          <td>₹${it.price * it.qty}</td>
+          <td><button onclick='removeItem(${i})' style='background:#dc3545;color:white;border:none;padding:3px 6px;border-radius:4px;cursor:pointer;'>🗑️</button></td>
+        </tr>`;
+    });
+  
+    document.getElementById("total").innerHTML = `<strong>Total: ₹${total}</strong>`;
+  
+    const cartBtn = document.getElementById("cartToggle");
+    if (cart.length > 0) {
+      const items = cart.reduce((sum, i) => sum + i.qty, 0);
+      cartBtn.innerText = `🛒 View Cart (${items} item${items > 1 ? "s" : ""} • ₹${total})`;
+    } else {
+      cartBtn.innerText = "🛒 View Cart (₹0)";
+    }
+  
+    updateMenuButtons(); // keep menu synced
+  }
+  
+  function changeQty(i, delta) {
+    cart[i].qty += delta;
+    if (cart[i].qty <= 0) cart.splice(i, 1);
+    renderCart();
+  }
+  
+  function updateQty(i, q) {
+    if (q <= 0) cart.splice(i, 1);
+    else cart[i].qty = q;
     renderCart();
   }
 
-  const lastOrder = localStorage.getItem("lastOrder");
-  if (lastOrder) document.getElementById("repeatContainer").style.display = "block";
 
-  if (s && JSON.parse(s).length > 0) {
-    showToast("👋 Welcome back! Your last cart is still here.");
+  function updateMenuButtons() {
+    document.querySelectorAll(".item").forEach(div => {
+      const name = div.getAttribute("data-name");
+      const priceText = div.querySelector(".price").textContent;
+      const cleanPrice = parseInt(priceText.match(/₹\s*(\d+)/)?.[1] || 0);
+      const item = cart.find(i => i.name === name);
+      const btnContainer = div.querySelector("span.price");
+  
+      if (item) {
+        btnContainer.innerHTML = `₹${item.price} 
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-left:8px;">
+            <button onclick="addToCart('${name}', ${item.price})" style="background:#ff6f00;color:#fff;border:none;border-radius:5px;padding:2px 6px;font-weight:700;">+</button>
+            <span>${item.qty}</span>
+            <button onclick="decreaseFromMenu('${name}')" style="background:#ffb300;color:#000;border:none;border-radius:5px;padding:2px 6px;font-weight:700;">−</button>
+          </div>`;
+      } else {
+        btnContainer.innerHTML = `₹${cleanPrice} <button onclick="addToCart('${name}', ${cleanPrice})">Add</button>`;
+      }
+    });
   }
-};
-</script>
+  
+  
+  function decreaseFromMenu(name) {
+    const item = cart.find(i => i.name === name);
+    if (item) {
+      item.qty--;
+      if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
+      renderCart();
+    }
+  }
+  
+  
+  function removeItem(i) {
+    cart.splice(i, 1);
+    renderCart();
+  }
+  
+  function placeOrder() {
+    if (cart.length === 0) return alert("Your cart is empty!");
+    const n = document.getElementById("name").value.trim();
+    const f = document.getElementById("flat").value.trim();
+    const m = document.getElementById("mobile").value.trim();
+    const notes = document.getElementById("notes").value.trim();
+    if (!n || !f || !m) return alert("Please fill all details before placing the order.");
+  
+    let msg = `*Snack Attack Order*%0A———————————%0A`;
+    cart.forEach(i => msg += `${i.name} x ${i.qty} = ₹${i.price * i.qty}%0A`);
+    const tot = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    msg += `———————————%0A*Total:* ₹${tot}%0A*Name:* ${n}%0A*Wing & Flat:* ${f}%0A*Mobile:* ${m}`;
+    if (notes) msg += `%0A*Notes:* ${encodeURIComponent(notes)}`;
+    window.open(`https://wa.me/919356396873?text=${msg}`, "_blank");
+    confettiBurst(); // ✨ Added confetti on order
+    showToast("✅ Order opened in WhatsApp!");
+  }
+  
+  /* ✨ Added: Confetti burst after checkout */
+  function confettiBurst() {
+    const count = 40;
+    for (let i = 0; i < count; i++) {
+      const conf = document.createElement("div");
+      conf.style.position = "fixed";
+      conf.style.width = "8px";
+      conf.style.height = "8px";
+      conf.style.background = ["#ff6f00","#ffb300","#0a8f08","#fff"][Math.floor(Math.random()*4)];
+      conf.style.left = Math.random()*100+"%";
+      conf.style.top = "0px";
+      conf.style.opacity = 0.9;
+      conf.style.zIndex = 2000;
+      conf.style.transform = `rotate(${Math.random()*360}deg)`;
+      conf.style.transition = "transform 2s ease, top 2s ease, opacity 2s ease";
+      document.body.appendChild(conf);
+      setTimeout(() => {
+        conf.style.top = "100vh";
+        conf.style.transform = `rotate(${Math.random()*720}deg)`;
+        conf.style.opacity = 0;
+      }, 50);
+      setTimeout(() => conf.remove(), 2000);
+    }
+  }
+  
+  /* ✨ Scroll to Top logic */
+  const scrollBtn = document.getElementById("scrollTopBtn");
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 400) scrollBtn.classList.add("show");
+    else scrollBtn.classList.remove("show");
+  });
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  
+  /* ✨ Personalized greeting */
+  window.addEventListener("load", () => {
+    const user = localStorage.getItem("userInfo");
+    if (user) {
+      const { n } = JSON.parse(user);
+      if (n) showToast(`👋 Welcome back, ${n.split(" ")[0]}!`);
+    }
+    document.getElementById("checkout").classList.add("pulse");
+  });
+  renderCart();
 
-<script>
-/* ========= ✨ Snack Attack UX Enhancements ✨ ========= */
-
+  window.addEventListener("load", () => {
+    const day = new Date().getDay();
+    if (day !== 6 && day !== 0) {
+      const btn = document.querySelector(`.item[data-name="Kolkata Chicken Cutlet (2 pcs)"] button`);
+      if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = 0.6;
+        btn.style.cursor = "not-allowed";
+        btn.title = "Available on weekends only";
+      }
+    }
+  });
+  
+  /* ========= ✨ Snack Attack UX Enhancements ✨ ========= */
 // Fade-in animation on scroll
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => {
@@ -684,6 +865,11 @@ placeOrder=function(){
     setTimeout(()=>showToast("🏍️ Out for delivery soon!"),8000);
   },3000);
 };
-</script>
-</body>
-</html>
+
+window.addEventListener("load", () => {
+  renderCart();
+});
+
+  </script>
+  </body>
+  </html>
