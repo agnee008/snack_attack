@@ -580,9 +580,8 @@
   function toggleCart() {
     const c = document.getElementById("cart");
     const scrollBtn = document.getElementById("scrollTopBtn");
-    const cartBtn = document.getElementById("cartToggle"); // ✅ safely get it here
+    const cartBtn = document.getElementById("cartToggle");
   
-    // Toggle cart visibility
     if (c.classList.contains("show")) {
       c.classList.remove("show");
       c.style.display = "none";
@@ -590,8 +589,7 @@
     } else {
       c.style.display = "block";
       setTimeout(() => c.classList.add("show"), 10);
-      cartBtn.classList.remove("show");
-      cartBtn.classList.add("hide");
+      cartBtn.classList.add("hide"); // hides View Cart
       scrollBtn.classList.remove("show");
     }
   }
