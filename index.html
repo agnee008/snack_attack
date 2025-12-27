@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff6f00">
 <title>Snack Attack | Order Online</title>
 <style>
   :root{
@@ -78,12 +79,6 @@
     nav button{min-width:90px;padding:.6rem;}
   }
   
-/* Responsive tweaks */
-@media(max-width:600px){
-  h1{font-size:1.1rem;}
-  .item{font-size:0.9rem;}
-  nav button{min-width:90px;padding:.6rem;}
-}
 #checkout {
   position: relative;
   z-index: 10;
@@ -98,6 +93,41 @@
   opacity: 0;
   pointer-events: none;
   transform: translateY(20px);
+}
+
+/* Highlight key user input fields */
+#cart input[type="text"] {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #3b2b15;
+  border: 2px solid #ffb300;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  margin: 0.3rem 0;
+  width: 100%;
+  background: #fffef8;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#cart input[type="text"]:focus {
+  border-color: #ff6f00;
+  box-shadow: 0 0 4px rgba(255, 111, 0, 0.5);
+  outline: none;
+}
+
+#cart input::placeholder {
+  color: #a87b3b;
+  font-weight: 500;
+}
+
+.item span:first-child {font-weight:600;}
+.item em {color:#e65c00;font-style:normal;font-size:0.85rem;margin-left:4px;}
+.item span.price {color:#555;font-size:0.9rem;}
+.divider{border-bottom:2px solid #ffe1b2;margin:1.5rem 0;}
+
+#cart {
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  transform: translateY(0);
 }
 
 </style>
@@ -120,24 +150,17 @@
 
 <nav id="categoryNav">
  <button class="active" onclick="scrollToCategory('fries')">Fries</button>
- <button onclick="scrollToCategory('cutlet')">Cutlets</button>
- <button onclick="scrollToCategory('paratha')">Parathas</button>
- <button onclick="scrollToCategory('sandwich')">Sandwiches</button>
- <button onclick="scrollToCategory('roll')">Rolls</button>
- <button onclick="scrollToCategory('eggs')">Eggs</button>
- <button onclick="scrollToCategory('maggi')">Maggi</button>
- <button onclick="scrollToCategory('combo')">Combos</button>
- <button onclick="scrollToCategory('drinks')">Drinks</button>
+ <button onclick="scrollToCategory(event, 'cutlet')">Cutlets</button>
+ <button onclick="scrollToCategory(event, 'paratha')">Parathas</button>
+ <button onclick="scrollToCategory(event, 'sandwich')">Sandwiches</button>
+ <button onclick="scrollToCategory(event, 'roll')">Rolls</button>
+ <button onclick="scrollToCategory(event, 'eggs')">Eggs</button>
+ <button onclick="scrollToCategory(event, 'maggi')">Maggi</button>
+ <button onclick="scrollToCategory(event, 'combo')">Combos</button>
+ <button onclick="scrollToCategory(event, 'drinks')">Drinks</button>
+ 
 </nav>
 
-<!-- 🍟🥪 SNACK ATTACK MENU : PART 1 -->
-<style>
-  .item span:first-child {font-weight:600;}
-  .item em {color:#e65c00;font-style:normal;font-size:0.85rem;margin-left:4px;}
-  .item span.price {color:#555;font-size:0.9rem;}
-  .divider{border-bottom:2px solid #ffe1b2;margin:1.5rem 0;}
-  </style>
-  
 <!-- 🍟 Fries & Finger Food Frenzy -->
 <section id="fries">
   <h2>🍟 Fries & Finger Food Frenzy</h2>
@@ -299,9 +322,14 @@
 <button id="cartToggle" onclick="toggleCart()">🛒 View Cart (₹0)</button>
 
 <div id="cart">
-  <h3>🧾 Your Cart</h3>
-  <table id="cartTable"></table>
-  <div id="total"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h3>🧾 Your Cart</h3>
+    <button id="minimizeCartBtn" onclick="minimizeCart()" 
+      style="background:none;border:none;color:#ff6f00;font-weight:600;cursor:pointer;font-size:0.9rem;">
+      ⬇️ Minimize
+    </button>
+  </div>
+
 
   <div style="margin-top:.6rem;">
     <input type="text" id="name" placeholder="Name">
@@ -317,7 +345,8 @@ oninput="autoGrow(this)"></textarea>
   <div id="repeatContainer" style="display:none;">
     <button id="repeatBtn" onclick="repeatOrder()">🔁 Repeat Last Order</button>
   </div>
-
+  <table id="cartTable"></table>
+  <p id="total" style="text-align:right;font-weight:600;margin-top:0.5rem;"></p>
   <div style="text-align:center;margin-top:1rem;">
     <p><strong>💰 Payment after delivery</strong></p>
     <p style="color:#e65c00;font-weight:500;margin-top:0.5rem;">
@@ -350,12 +379,15 @@ function showToast(msg) {
 
 function autoGrow(element) {
   element.style.height = "auto";
-  element.style.height = (element.scrollHeight) + "px";
+  element.style.height = element.scrollHeight + "px";
+  if (element.scrollHeight < 60) element.style.height = "40px";
 }
+
 
 function toggleCart() {
   const c = document.getElementById("cart");
   const mini = document.getElementById("miniCartBar");
+  if (!mini) return;
   const isOpen = c.style.display === "block";
   c.style.display = isOpen ? "none" : "block";
   if (!isOpen) {
@@ -368,7 +400,7 @@ function toggleCart() {
 }
 
 
-function scrollToCategory(id) {
+function scrollToCategory(event, id) {
   document.getElementById(id).scrollIntoView({ behavior: "smooth" });
   document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
   event.target.classList.add("active");
@@ -403,6 +435,23 @@ function removeItem(i) {
   renderMenuButtons();
   showToast(`Removed ${itemName}`);
 }
+
+function minimizeCart() {
+  const cart = document.getElementById("cart");
+  cart.style.transition = "transform 0.4s ease, opacity 0.3s ease";
+  cart.style.opacity = "0";
+  cart.style.transform = "translateY(100%)";
+  setTimeout(() => {
+    cart.style.display = "none";
+    cart.style.opacity = "1";
+    cart.style.transform = "translateY(0)";
+  }, 400);
+
+  const miniBar = document.getElementById("miniCartBar");
+  miniBar.style.display = "flex";
+  miniBar.style.opacity = "1";
+}
+
 
 function renderMenuButtons() {
   document.querySelectorAll(".item").forEach(div => {
