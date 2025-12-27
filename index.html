@@ -333,7 +333,39 @@
       color: #ffe082;
     }
   }
-  
+/* Prevent floating button from blocking cart content */
+#cart {
+  padding-bottom: 90px; /* extra breathing room for View Cart button */
+}
+
+/* Adjust floating View Cart position */
+#cartToggle {
+  bottom: 25px !important; /* closer to bottom edge */
+}
+
+/* Move scroll button higher */
+#scrollTopBtn {
+  bottom: 100px !important;
+}
+
+/* Mini Cart bar spacing */
+#miniCartBar {
+  bottom: 70px !important;
+}
+
+/* Mobile tweaks */
+@media (max-width: 600px) {
+  #cart {
+    padding-bottom: 120px; /* extra space for mobile UI overlap */
+  }
+  #cartToggle {
+    bottom: 20px !important;
+  }
+  #scrollTopBtn {
+    bottom: 110px !important;
+  }
+}
+
 </style>
 </head>
 
