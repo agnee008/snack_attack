@@ -141,26 +141,24 @@
     border-bottom: 1px solid #ffe082;
   }
 
-/* 🛒 View Cart Floating Button */
-/* 🛒 View Cart Floating Button with Slide Effect */
+/* Force View Cart button visibility */
 #cartToggle {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
+  position: fixed !important;
+  bottom: 90px !important; /* push it above up arrow and browser bar */
+  right: 20px !important;
   background: var(--orange);
   color: #fff;
-  padding: 0.9rem 1.3rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.8rem 1.3rem;
   border: none;
   border-radius: 30px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  z-index: 1500;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  transform: translateY(150%);
-  opacity: 0;
-  transition: transform 0.4s ease, opacity 0.4s ease;
+  z-index: 3000 !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
+
 
 #cartToggle.show {
   transform: translateY(0);
@@ -583,16 +581,22 @@
   function toggleCart() {
     const c = document.getElementById("cart");
     const scrollBtn = document.getElementById("scrollTopBtn");
-    c.classList.toggle("show");
+    const cartBtn = document.getElementById("cartToggle"); // ✅ safely get it here
   
+    // Toggle cart visibility
     if (c.classList.contains("show")) {
+      c.classList.remove("show");
+      c.style.display = "none";
+      cartBtn.classList.remove("hide");
+    } else {
+      c.style.display = "block";
+      setTimeout(() => c.classList.add("show"), 10);
       cartBtn.classList.remove("show");
       cartBtn.classList.add("hide");
       scrollBtn.classList.remove("show");
-    } else {
-      cartBtn.classList.remove("hide");
     }
   }
+  
   
   function minimizeCart() {
     const c = document.getElementById("cart");
