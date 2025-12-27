@@ -569,7 +569,7 @@
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 2000);
+    setTimeout(() => toast.classList.remove("show"), 4000);
   }
   
   function autoGrow(element) {
@@ -970,7 +970,7 @@ placeOrder=function(){
   origPlaceOrder();
   setTimeout(()=>{
     showToast("👨‍🍳 Your order’s being prepared…");
-    setTimeout(()=>showToast("🏍️ Out for delivery soon!"),8000);
+    setTimeout(()=>showToast("🏍️ Out for delivery soon!"),15000);
   },3000);
 };
 
@@ -997,3 +997,5 @@ window.addEventListener("scroll", () => {
   </script>
   </body>
   </html>
+
+
