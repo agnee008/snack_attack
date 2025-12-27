@@ -614,15 +614,21 @@
     const scrollBtn = document.getElementById("scrollTopBtn");
     const cartBtn = document.getElementById("cartToggle");
   
-    if (c.classList.contains("show")) {
-      c.classList.remove("show");
-      c.style.display = "none";
-      cartBtn.classList.remove("hide");
-    } else {
+    // If the cart is hidden (display:none), re-enable it
+    if (c.style.display === "none") {
       c.style.display = "block";
-      setTimeout(() => c.classList.add("show"), 10);
-      cartBtn.classList.add("hide"); // hides View Cart
+    }
+  
+    // Toggle the "show" class to expand or minimize
+    c.classList.toggle("show");
+  
+    if (c.classList.contains("show")) {
+      // When the cart is open, hide floating controls
+      cartBtn.classList.add("hide");
       scrollBtn.classList.remove("show");
+    } else {
+      // When minimized, show the floating cart button again
+      cartBtn.classList.remove("hide");
     }
   }
   
