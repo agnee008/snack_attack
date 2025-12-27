@@ -84,6 +84,22 @@
   .item{font-size:0.9rem;}
   nav button{min-width:90px;padding:.6rem;}
 }
+#checkout {
+  position: relative;
+  z-index: 10;
+  margin-bottom: 80px; /* adds breathing space above browser nav */
+}
+
+#miniCartBar {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+#cart.showing #miniCartBar {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px);
+}
+
 </style>
 </head>
 <body>
@@ -339,8 +355,18 @@ function autoGrow(element) {
 
 function toggleCart() {
   const c = document.getElementById("cart");
-  c.style.display = (c.style.display === "block") ? "none" : "block";
+  const mini = document.getElementById("miniCartBar");
+  const isOpen = c.style.display === "block";
+  c.style.display = isOpen ? "none" : "block";
+  if (!isOpen) {
+    mini.style.opacity = "0";
+    setTimeout(() => mini.style.display = "none", 200);
+  } else {
+    mini.style.display = "flex";
+    setTimeout(() => mini.style.opacity = "1", 100);
+  }
 }
+
 
 function scrollToCategory(id) {
   document.getElementById(id).scrollIntoView({ behavior: "smooth" });
