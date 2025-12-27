@@ -142,9 +142,10 @@
   }
 
 /* 🛒 View Cart Floating Button */
+/* 🛒 View Cart Floating Button with Slide Effect */
 #cartToggle {
   position: fixed;
-  bottom: 100px; /* lifted above the tagline */
+  bottom: 20px;
   right: 20px;
   background: var(--orange);
   color: #fff;
@@ -154,21 +155,29 @@
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
-  z-index: 1400;
+  z-index: 1500;
   box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateY(150%);
+  opacity: 0;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+#cartToggle.show {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 #cartToggle.hide {
   opacity: 0;
   pointer-events: none;
-  transform: translateY(20px);
+  transform: translateY(150%);
 }
 
-/* 📦 Mini Floating Cart Bar */
+
+/* 📦 Mini floating cart summary */
 #miniCartBar {
   position: fixed;
-  bottom: 150px; /* lifted so it never clashes with the up arrow */
+  bottom: 80px; /* sits above View Cart, clear of tagline */
   left: 50%;
   transform: translateX(-50%);
   background: #ff6f00;
@@ -187,7 +196,7 @@
 /* ⬆️ Scroll to Top Button */
 #scrollTopBtn {
   position: fixed;
-  bottom: 25px; /* moved down to clear cart total area */
+  bottom: 100px; /* lower and out of the way */
   right: 20px;
   background: var(--orange);
   color: #fff;
@@ -208,11 +217,14 @@
   transform: translateY(0);
 }
 
-/* 📱 Mobile tweak */
+/* 📱 Mobile-friendly adjustments */
 @media (max-width: 600px) {
-  #cartToggle { bottom: 120px; }
-  #miniCartBar { bottom: 160px; }
-  #scrollTopBtn { bottom: 35px; }
+  #miniCartBar {
+    bottom: 90px; /* gives breathing room above nav bar */
+  }
+  #scrollTopBtn {
+    bottom: 150px; /* completely above both cart buttons */
+  }
 }
 
 
@@ -570,9 +582,16 @@
   
   function toggleCart() {
     const c = document.getElementById("cart");
-    const isVisible = c.classList.toggle("show");
-    c.style.display = isVisible ? "block" : "none";
-    if (isVisible) window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    const scrollBtn = document.getElementById("scrollTopBtn");
+    c.classList.toggle("show");
+  
+    if (c.classList.contains("show")) {
+      cartBtn.classList.remove("show");
+      cartBtn.classList.add("hide");
+      scrollBtn.classList.remove("show");
+    } else {
+      cartBtn.classList.remove("hide");
+    }
   }
   
   function minimizeCart() {
@@ -955,6 +974,22 @@ placeOrder=function(){
 window.addEventListener("load", () => {
   renderCart();
 });
+
+let lastScrollTop = 0;
+const cartBtn = document.getElementById("cartToggle");
+
+window.addEventListener("scroll", () => {
+  const st = window.pageYOffset || document.documentElement.scrollTop;
+
+  if (st > lastScrollTop && st > 150) {
+    cartBtn.classList.add("show");
+  } else if (st < lastScrollTop || st < 150) {
+    cartBtn.classList.remove("show");
+  }
+
+  lastScrollTop = st <= 0 ? 0 : st;
+});
+
 
   </script>
   </body>
