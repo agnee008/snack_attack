@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snack Attack | Order Online</title>
+<style>
+  :root{
+    --orange:#ff6f00;
+    --amber:#ffb300;
+    --cream:#fffaf3;
+    --brown:#3b2b15;
+    --green:#0a8f08;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Inter",Arial,sans-serif;background:var(--cream);color:var(--brown);}
+  header{text-align:center;background:var(--amber);padding:0.8rem;}
+  header img{width:120px;height:auto;border-radius:12px;}
+  h1{font-size:1.3rem;margin:0.4rem 0 0;}
+  .notice{background:#fff3cd;border-left:5px solid #ffc107;margin:1rem;border-radius:6px;padding:0.9rem;font-size:0.95rem;}
+  .notice a{color:var(--green);font-weight:600;text-decoration:none;}
+  nav{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;display:flex;overflow-x:auto;z-index:999;}
+  nav button{flex:1;min-width:110px;background:none;border:none;padding:.7rem;font-weight:600;color:var(--brown);cursor:pointer;white-space:nowrap;}
+  nav button:hover,nav button.active{background:var(--amber);color:#fff;}
+  section{padding:1rem;}
+  h2{color:var(--orange);margin:1rem 0 0.5rem;font-size:1.1rem;transition:all 0.3s ease;opacity:0.85;}
+  section:hover h2{transform:translateX(5px);opacity:1;}
+  .item{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;padding:.45rem 0;font-size:0.95rem;}
+  .item span:first-child{flex:1;padding-right:0.5rem;}
+  .item span.price{color:#222;font-weight:700;font-size:1rem;}
+  .item button{background:var(--orange);color:#fff;border:none;padding:.35rem .7rem;border-radius:6px;font-size:0.9rem;}
+  .item button:active{background:#e65c00;}
+  .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:.6rem 1rem;border-radius:6px;opacity:0;transition:opacity .3s;font-size:0.9rem;z-index:9999;}
+  .toast.show{opacity:1;}
+  .delivery-banner{text-align:center;background:#fff8e1;padding:.6rem;font-size:0.9rem;color:#444;border-bottom:1px solid #ffe082;}
+  #cartToggle{position:fixed;bottom:0;right:0;background:var(--orange);color:#fff;padding:.9rem 1.3rem;border:none;border-radius:16px 0 0 0;font-weight:600;font-size:0.9rem;cursor:pointer;z-index:1000;}
+  #cart{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:3px solid var(--amber);padding:1rem;box-shadow:0 -4px 8px rgba(0,0,0,.15);border-radius:12px 12px 0 0;z-index:999;}
+  #cart h3{margin-top:0;}
+  table{width:100%;font-size:.9rem;}
+  table input{width:45px;text-align:center;}
+  #checkout,#repeatBtn{background:var(--green);color:#fff;border:none;width:100%;padding:.8rem;border-radius:8px;font-size:1rem;font-weight:600;margin-top:.6rem;}
+  #repeatBtn{background:#ffb300;}
+  footer{text-align:center;padding:1rem;font-size:0.85rem;background:#fff0d9;margin-top:3rem;line-height:1.4;}
+  
+  /* Quantity controls (when item added) */
+  .qty-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+  }
+  .qty-btn {
+    background: var(--orange);
+    color: #fff;
+    border: none;
+    padding: 0.25rem 0.6rem;
+    border-radius: 50%;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 700;
+    line-height: 1;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .qty-btn:active { background: #e65c00; }
+  .qty-number {
+    font-weight: 700;
+    color: var(--brown);
+    min-width: 20px;
+    text-align: center;
+  }
+  @media(max-width:600px){
+    h1{font-size:1.1rem;}
+    .item{font-size:0.9rem;}
+    nav button{min-width:90px;padding:.6rem;}
+  }
+  
+/* Responsive tweaks */
+@media(max-width:600px){
+  h1{font-size:1.1rem;}
+  .item{font-size:0.9rem;}
+  nav button{min-width:90px;padding:.6rem;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="./Snack_Attack_Logo.png" alt="Snack Attack Logo">
+  <h1>Snack. Attack. Repeat.</h1>
+</header>
+
+<div class="delivery-banner">
+ 🚴‍♂️ Delivery in 25–30 mins • Free within Yashwin Orizzonte
+</div>
+
+<section class="notice">
+ 🍽️ <strong>Today's Dinner Meal:</strong> Check our 
+ <a href="https://chat.whatsapp.com/KrPBWTC7oN14HbrhXql2lK" target="_blank">Snack Attack WhatsApp Group</a> (5 – 6 PM) for the daily special!
+</section>
+
+<nav id="categoryNav">
+ <button class="active" onclick="scrollToCategory('fries')">Fries</button>
+ <button onclick="scrollToCategory('cutlet')">Cutlets</button>
+ <button onclick="scrollToCategory('paratha')">Parathas</button>
+ <button onclick="scrollToCategory('sandwich')">Sandwiches</button>
+ <button onclick="scrollToCategory('roll')">Rolls</button>
+ <button onclick="scrollToCategory('eggs')">Eggs</button>
+ <button onclick="scrollToCategory('maggi')">Maggi</button>
+ <button onclick="scrollToCategory('combo')">Combos</button>
+ <button onclick="scrollToCategory('drinks')">Drinks</button>
+</nav>
+
+<!-- 🍟🥪 SNACK ATTACK MENU : PART 1 -->
+<style>
+  .item span:first-child {font-weight:600;}
+  .item em {color:#e65c00;font-style:normal;font-size:0.85rem;margin-left:4px;}
+  .item span.price {color:#555;font-size:0.9rem;}
+  .divider{border-bottom:2px solid #ffe1b2;margin:1.5rem 0;}
+  </style>
+  
+<!-- 🍟 Fries & Finger Food Frenzy -->
+<section id="fries">
+  <h2>🍟 Fries & Finger Food Frenzy</h2>
+  <div class="item" data-name="Classic Golden French Fries"><span>🥔 Classic Golden French Fries</span><span class="price">₹89 <button onclick="addToCart('Classic Golden French Fries',89)">Add</button></span></div>
+  <div class="item" data-name="Firecracker Peri Peri Fries"><span>🌶 Firecracker Peri Peri Fries</span><span class="price">₹109 <button onclick="addToCart('Firecracker Peri Peri Fries',109)">Add</button></span></div>
+  <div class="item" data-name="Chipotle Cheesy Bliss Fries"><span>🧀 Chipotle Cheesy Bliss Fries <em>🔥 Must Try!</em></span><span class="price">₹129 <button onclick="addToCart('Chipotle Cheesy Bliss Fries',129)">Add</button></span></div>
+  <div class="item" data-name="Crunchy Chicken Popcorn (8 pcs)"><span>🍗 Crunchy Chicken Popcorn (8 pcs)</span><span class="price">₹129 <button onclick="addToCart('Crunchy Chicken Popcorn (8 pcs)',129)">Add</button></span></div>
+  <div class="item" data-name="Cheese Burst Chicken Bites (6 pcs)"><span>🧀 Cheese Burst Chicken Bites (6 pcs) <em>🔥 Must Try!</em></span><span class="price">₹139 <button onclick="addToCart('Cheese Burst Chicken Bites (6 pcs)',139)">Add</button></span></div>
+  <div class="item" data-name="Golden Chicken Bites (6 pcs)"><span>🍗 Golden Chicken Bites (6 pcs)</span><span class="price">₹139 <button onclick="addToCart('Golden Chicken Bites (6 pcs)',139)">Add</button></span></div>
+  <div class="item" data-name="Chipotle Mayo Chicken Strips (6 pcs)"><span>🌯 Chipotle Mayo Chicken Strips (6 pcs) <em>🔥 Must Try!</em></span><span class="price">₹149 <button onclick="addToCart('Chipotle Mayo Chicken Strips (6 pcs)',149)">Add</button></span></div>
+  <div class="item" data-name="Garlic Chicken Fingers (6 pcs)"><span>🧄 Garlic Chicken Fingers (6 pcs) <em>🔥 Must Try!</em></span><span class="price">₹149 <button onclick="addToCart('Garlic Chicken Fingers (6 pcs)',149)">Add</button></span></div>
+  <div class="item" data-name="Chicken Herb Cheese Balls (6 pcs)"><span>🧀 Chicken Herb Cheese Balls (6 pcs)</span><span class="price">₹149 <button onclick="addToCart('Chicken Herb Cheese Balls (6 pcs)',149)">Add</button></span></div>
+  <div class="item" data-name="Potato Cheese Balls (6 pcs)"><span>🥔 Potato Cheese Balls (6 pcs)</span><span class="price">₹109 <button onclick="addToCart('Potato Cheese Balls (6 pcs)',109)">Add</button></span></div>
+  <div class="item" data-name="Golden Corn Cheese Bites (6 pcs)"><span>🌽 Golden Corn Cheese Bites (6 pcs)</span><span class="price">₹149 <button onclick="addToCart('Golden Corn Cheese Bites (6 pcs)',149)">Add</button></span></div>
+  <div class="item" data-name="Crunchy Veggie Nuggets (6 pcs)"><span>🥕 Crunchy Veggie Nuggets (6 pcs)</span><span class="price">₹129 <button onclick="addToCart('Crunchy Veggie Nuggets (6 pcs)',129)">Add</button></span></div>
+  <div class="item" data-name="Golden Fried Veggie Fingers (6 pcs)"><span>🥒 Golden Fried Veggie Fingers (6 pcs)</span><span class="price">₹129 <button onclick="addToCart('Golden Fried Veggie Fingers (6 pcs)',129)">Add</button></span></div>
+</section>
+<div class="divider"></div>
+
+<!-- 🥙 Cutlet & Pakoda Punch -->
+<section id="cutlet">
+  <h2>🥙 Cutlet & Pakoda Punch</h2>
+  <div class="item" data-name="Kolkata Chicken Cutlet (2 pcs)"><span>🍗 Kolkata Chicken Cutlet (2 pcs) <em>🔥 Must Try! / Weekends Only</em></span><span class="price">₹179 <button onclick="addToCart('Kolkata Chicken Cutlet (2 pcs)',179)">Add</button></span></div>
+  <div class="item" data-name="Paneer Crunch Cutlet (2 pcs)"><span>🧀 Paneer Crunch Cutlet (2 pcs)</span><span class="price">₹129 <button onclick="addToCart('Paneer Crunch Cutlet (2 pcs)',129)">Add</button></span></div>
+  <div class="item" data-name="Desi Chicken Pakoda (6 pcs)"><span>🍗 Desi Chicken Pakoda (6 pcs)</span><span class="price">₹169 <button onclick="addToCart('Desi Chicken Pakoda (6 pcs)',169)">Add</button></span></div>
+  <div class="item" data-name="Crispy Onion Pakoda (6 pcs)"><span>🧅 Crispy Onion Pakoda (6 pcs) <em>🔥 Must Try!</em></span><span class="price">₹129 <button onclick="addToCart('Crispy Onion Pakoda (6 pcs)',129)">Add</button></span></div>
+  <div class="item" data-name="Paneer Pakoda Bites (6 pcs)"><span>🧀 Paneer Pakoda Bites (6 pcs)</span><span class="price">₹149 <button onclick="addToCart('Paneer Pakoda Bites (6 pcs)',149)">Add</button></span></div>
+  <div class="item" data-name="Masala Veg Pakoda (6 pcs)"><span>🥔 Masala Veg Pakoda (6 pcs)</span><span class="price">₹129 <button onclick="addToCart('Masala Veg Pakoda (6 pcs)',129)">Add</button></span></div>
+</section>
+<div class="divider"></div>
+
+<!-- 🥘 Paratha Junction -->
+<section id="paratha">
+  <h2>🥘 Paratha Junction</h2>
+  <div class="item" data-name="Aloo Paratha Supreme (2 pcs)"><span>🥔 Aloo Paratha Supreme (2 pcs) <em>🔥 Must Try!</em></span><span class="price">₹109 <button onclick="addToCart('Aloo Paratha Supreme (2 pcs)',109)">Add</button></span></div>
+  <div class="item" data-name="Paneer Paratha King (2 pcs)"><span>🧀 Paneer Paratha King (2 pcs) <em>🔥 Must Try!</em></span><span class="price">₹129 <button onclick="addToCart('Paneer Paratha King (2 pcs)',129)">Add</button></span></div>
+  <div class="item" data-name="Kolkata Lacha Paratha (2 pcs)"><span>🥮 Kolkata Lacha Paratha (2 pcs) <em>🔥 Must Try!</em></span><span class="price">₹59 <button onclick="addToCart('Kolkata Lacha Paratha (2 pcs)',59)">Add</button></span></div>
+  <div class="item" data-name="Classic Plain Paratha (2 pcs)"><span>🍞 Classic Plain Paratha (2 pcs)</span><span class="price">₹39 <button onclick="addToCart('Classic Plain Paratha (2 pcs)',39)">Add</button></span></div>
+  <div class="item" data-name="Tawa Roti (2 pcs with desi ghee)"><span>🥯 Tawa Roti (2 pcs with desi ghee) <em>Only in Evening</em></span><span class="price">₹20 <button onclick="addToCart('Tawa Roti (2 pcs with desi ghee)',20)">Add</button></span></div>
+</section>
+<div class="divider"></div>
+
+<!-- 🥪 Sandwich Stop -->
+<section id="sandwich">
+  <h2>🥪 Sandwich Stop</h2>
+  <div class="item" data-name="Paneer Treat Sandwich"><span>🧀 Paneer Treat Sandwich <em>🔥 Must Try!</em></span><span class="price">₹149 <button onclick="addToCart('Paneer Treat Sandwich',149)">Add</button></span></div>
+  <div class="item" data-name="Fresh Veggie Sandwich"><span>🥗 Fresh Veggie Sandwich</span><span class="price">₹129 <button onclick="addToCart('Fresh Veggie Sandwich',129)">Add</button></span></div>
+  <div class="item" data-name="Aloo Tikki Cheese Sandwich"><span>🥔 Aloo Tikki Cheese Sandwich <em>🔥 Must Try!</em></span><span class="price">₹129 <button onclick="addToCart('Aloo Tikki Cheese Sandwich',129)">Add</button></span></div>
+  <div class="item" data-name="Peri Peri Veggie Sandwich"><span>🌶 Peri Peri Veggie Sandwich</span><span class="price">₹139 <button onclick="addToCart('Peri Peri Veggie Sandwich',139)">Add</button></span></div>
+  <div class="item" data-name="Cheese Overload Veggie Sandwich"><span>🧀 Cheese Overload Veggie Sandwich <em>🔥 Must Try!</em></span><span class="price">₹159 <button onclick="addToCart('Cheese Overload Veggie Sandwich',159)">Add</button></span></div>
+  <div class="item" data-name="Classic Chicken Mayo Sandwich"><span>🍗 Classic Chicken Mayo Sandwich <em>🔥 Must Try!</em></span><span class="price">₹149 <button onclick="addToCart('Classic Chicken Mayo Sandwich',149)">Add</button></span></div>
+  <div class="item" data-name="Chipotle Mayo Chicken Tikka Sandwich"><span>🌮 Chipotle Mayo Chicken Tikka Sandwich <em>🔥 Must Try!</em></span><span class="price">₹159 <button onclick="addToCart('Chipotle Mayo Chicken Tikka Sandwich',159)">Add</button></span></div>
+  <div class="item" data-name="Peri Peri Chicken Sandwich"><span>🌶 Peri Peri Chicken Sandwich</span><span class="price">₹149 <button onclick="addToCart('Peri Peri Chicken Sandwich',149)">Add</button></span></div>
+  <div class="item" data-name="Egg Mayo Melt Sandwich"><span>🥚 Egg Mayo Melt Sandwich</span><span class="price">₹129 <button onclick="addToCart('Egg Mayo Melt Sandwich',129)">Add</button></span></div>
+  <div class="item" data-name="Chicken Cheese Melt Sandwich"><span>🧀 Chicken Cheese Melt Sandwich</span><span class="price">₹159 <button onclick="addToCart('Chicken Cheese Melt Sandwich',159)">Add</button></span></div>
+</section>
+
+  
+<section id="roll">
+  <h2>🌯 Roll It Up</h2>
+  <div class="item" data-name="Kolkata Egg Roll Classic"><span>🥚 Kolkata Egg Roll Classic</span><span class="price">₹99 <button onclick="addToCart('Kolkata Egg Roll Classic',99)">Add</button></span></div>
+  <div class="item" data-name="Paneer Tikka Roll"><span>🧀 Paneer Tikka Roll <em>🔥 Must Try!</em></span><span class="price">₹119 <button onclick="addToCart('Paneer Tikka Roll',119)">Add</button></span></div>
+  <div class="item" data-name="Aloo Tikki Roll"><span>🥔 Aloo Tikki Roll <em>🔥 Must Try!</em></span><span class="price">₹99 <button onclick="addToCart('Aloo Tikki Roll',99)">Add</button></span></div>
+  <div class="item" data-name="Aloo Tikki Egg Fusion Roll"><span>🥚🥔 Aloo Tikki Egg Fusion Roll</span><span class="price">₹109 <button onclick="addToCart('Aloo Tikki Egg Fusion Roll',109)">Add</button></span></div>
+  <div class="item" data-name="Kolkata Chicken Kathi Roll"><span>🍗 Kolkata Chicken Kathi Roll</span><span class="price">₹139 <button onclick="addToCart('Kolkata Chicken Kathi Roll',139)">Add</button></span></div>
+  <div class="item" data-name="Kolkata Egg Chicken Kathi Roll"><span>🥚🍗 Kolkata Egg Chicken Kathi Roll <em>🔥 Must Try!</em></span><span class="price">₹149 <button onclick="addToCart('Kolkata Egg Chicken Kathi Roll',149)">Add</button></span></div>
+  <div class="item" data-name="Veg Cheese Roll"><span>🧀 Veg Cheese Roll</span><span class="price">₹99 <button onclick="addToCart('Veg Cheese Roll',99)">Add</button></span></div>
+</section>
+<div class="divider"></div>
+
+
+<!-- 🍳 Eggelicious -->
+<section id="eggs">
+  <h2>🍳 Eggelicious</h2>
+
+  <div class="item" data-name="Egg Bhurji (Single)">
+    <span>🥚 Egg Bhurji (Single)</span>
+    <span class="price">₹45 <button onclick="addToCart('Egg Bhurji (Single)',45)">Add</button></span>
+  </div>
+
+  <div class="item" data-name="Egg Bhurji (Double)">
+    <span>🥚 Egg Bhurji (Double)</span>
+    <span class="price">₹60 <button onclick="addToCart('Egg Bhurji (Double)',60)">Add</button></span>
+  </div>
+
+  <div class="item" data-name="Masala Omelette (Single)">
+    <span>🌶 Masala Omelette (Single)</span>
+    <span class="price">₹45 <button onclick="addToCart('Masala Omelette (Single)',45)">Add</button></span>
+  </div>
+
+  <div class="item" data-name="Masala Omelette (Double)">
+    <span>🌶 Masala Omelette (Double)</span>
+    <span class="price">₹60 <button onclick="addToCart('Masala Omelette (Double)',60)">Add</button></span>
+  </div>
+
+  <div class="item" data-name="Cheese Omelette (Single)">
+    <span>🧀 Cheese Omelette (Single)</span>
+    <span class="price">₹60 <button onclick="addToCart('Cheese Omelette (Single)',60)">Add</button></span>
+  </div>
+
+  <div class="item" data-name="Cheese Omelette (Double)">
+    <span>🧀 Cheese Omelette (Double)</span>
+    <span class="price">₹70 <button onclick="addToCart('Cheese Omelette (Double)',70)">Add</button></span>
+  </div>
+
+  <div class="item" data-name="Egg Khagina">
+    <span>🍳 Egg Khagina (2 eggs sunny side up on spiced onions)</span>
+    <span class="price">₹65 <button onclick="addToCart('Egg Khagina',65)">Add</button></span>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 🍜 Maggi Station -->
+<section id="maggi">
+  <h2>🍜 Maggi Station</h2>
+  <div class="item" data-name="Plain Peas Maggi"><span>🟢 Plain Peas Maggi</span><span class="price">₹69 <button onclick="addToCart('Plain Peas Maggi',69)">Add</button></span></div>
+  <div class="item" data-name="Mix Veg Masala Maggi"><span>🥕 Mix Veg Masala Maggi</span><span class="price">₹79 <button onclick="addToCart('Mix Veg Masala Maggi',79)">Add</button></span></div>
+  <div class="item" data-name="Mix Veg Cheese Maggi"><span>🧀 Mix Veg Cheese Maggi <em>🔥 Must Try!</em></span><span class="price">₹99 <button onclick="addToCart('Mix Veg Cheese Maggi',99)">Add</button></span></div>
+  <div class="item" data-name="Cheesy Corn Veg Maggi"><span>🌽 Cheesy Corn Veg Maggi <em>🔥 Must Try!</em></span><span class="price">₹89 <button onclick="addToCart('Cheesy Corn Veg Maggi',89)">Add</button></span></div>
+  <div class="item" data-name="Paneer Veg Maggi"><span>🧀 Paneer Veg Maggi</span><span class="price">₹89 <button onclick="addToCart('Paneer Veg Maggi',89)">Add</button></span></div>
+  <div class="item" data-name="Cheesy Paneer Veg Maggi"><span>🧀 Cheesy Paneer Veg Maggi</span><span class="price">₹99 <button onclick="addToCart('Cheesy Paneer Veg Maggi',99)">Add</button></span></div>
+  <div class="item" data-name="Peri Peri Masala Veg Maggi"><span>🌶 Peri Peri Masala Veg Maggi</span><span class="price">₹79 <button onclick="addToCart('Peri Peri Masala Veg Maggi',79)">Add</button></span></div>
+  <div class="item" data-name="Egg Masala Maggi"><span>🥚 Egg Masala Maggi</span><span class="price">₹109 <button onclick="addToCart('Egg Masala Maggi',109)">Add</button></span></div>
+  <div class="item" data-name="Chicken Masala Maggi"><span>🍗 Chicken Masala Maggi</span><span class="price">₹119 <button onclick="addToCart('Chicken Masala Maggi',119)">Add</button></span></div>
+  <div class="item" data-name="Chicken Cheese Maggi"><span>🧀 Chicken Cheese Maggi <em>🔥 Must Try!</em></span><span class="price">₹129 <button onclick="addToCart('Chicken Cheese Maggi',129)">Add</button></span></div>
+  <div class="item" data-name="Cheesy Egg Maggi"><span>🥚🧀 Cheesy Egg Maggi <em>🔥 Must Try!</em></span><span class="price">₹119 <button onclick="addToCart('Cheesy Egg Maggi',119)">Add</button></span></div>
+</section>
+<div class="divider"></div>
+
+
+<!-- 🍱 Attack Combos -->
+<section id="combo">
+  <h2>🍱 Attack Combos (Max Saver)</h2>
+  <div class="item" data-name="Classic Golden Fries + Diet Coke"><span>🍟 Classic Golden Fries + 🥤 Diet Coke</span><span class="price">₹119 <button onclick="addToCart('Classic Golden Fries + Diet Coke',119)">Add</button></span></div>
+  <div class="item" data-name="Peri Peri Fries + Diet Coke"><span>🌶 Peri Peri Fries + 🥤 Diet Coke</span><span class="price">₹129 <button onclick="addToCart('Peri Peri Fries + Diet Coke',129)">Add</button></span></div>
+  <div class="item" data-name="Chicken Nuggets + Diet Coke"><span>🍗 Chicken Nuggets (6 pcs) + 🥤 Diet Coke</span><span class="price">₹169 <button onclick="addToCart('Chicken Nuggets + Diet Coke',169)">Add</button></span></div>
+  <div class="item" data-name="Paneer Treat Sandwich + Fries + Diet Coke"><span>🥪 Paneer Treat Sandwich + 🍟 Fries + 🥤 Diet Coke</span><span class="price">₹279 <button onclick="addToCart('Paneer Treat Sandwich + Fries + Diet Coke',279)">Add</button></span></div>
+  <div class="item" data-name="Chicken Kathi Roll + Cutlet + Diet Coke"><span>🌯 Chicken Kathi Roll + 🍗 Chicken Cutlet + 🥤 Diet Coke</span><span class="price">₹339 <button onclick="addToCart('Chicken Kathi Roll + Cutlet + Diet Coke',339)">Add</button></span></div>
+  <div class="item" data-name="Aloo Paratha Supreme + Masala Chai"><span>🥘 Aloo Paratha Supreme (2 pcs) + ☕ Masala Chai <em>🔥 Must Try!</em></span><span class="price">₹149 <button onclick="addToCart('Aloo Paratha Supreme + Masala Chai',149)">Add</button></span></div>
+  <div class="item" data-name="Chipotle Chicken Tikka Sandwich + Fries + Diet Coke"><span>🌮 Chipotle Chicken Tikka Sandwich + 🍟 Fries + 🥤 Diet Coke</span><span class="price">₹309 <button onclick="addToCart('Chipotle Chicken Tikka Sandwich + Fries + Diet Coke',309)">Add</button></span></div>
+  <div class="item" data-name="Any 2 Sandwiches + Fries + Drink"><span>🥪 Any 2 Sandwiches + 🍟 Fries + 🥤 Drink of Choice</span><span class="price">₹449 <button onclick="addToCart('Any 2 Sandwiches + Fries + Drink',449)">Add</button></span></div>
+</section>
+<div class="divider"></div>
+
+
+<!-- ☕ Sip N Chill -->
+<section id="drinks">
+  <h2>☕ Sip N Chill</h2>
+  <div class="item" data-name="Desi Masala Chai"><span>🍵 Desi Masala Chai</span><span class="price">₹49 <button onclick="addToCart('Desi Masala Chai',49)">Add</button></span></div>
+  <div class="item" data-name="Brewed Bliss Coffee"><span>☕ Brewed Bliss Coffee</span><span class="price">₹69 <button onclick="addToCart('Brewed Bliss Coffee',69)">Add</button></span></div>
+  <div class="item" data-name="Diet Coke (300ml)"><span>🥤 Diet Coke (300 ml)</span><span class="price">₹69 <button onclick="addToCart('Diet Coke (300ml)',69)">Add</button></span></div>
+</section>
+<div class="divider"></div>
+
+
+<!-- 🧾 Checkout Section -->
+<div id="toast" class="toast"></div>
+<button id="cartToggle" onclick="toggleCart()">🛒 View Cart (₹0)</button>
+
+<div id="cart">
+  <h3>🧾 Your Cart</h3>
+  <table id="cartTable"></table>
+  <div id="total"></div>
+
+  <div style="margin-top:.6rem;">
+    <input type="text" id="name" placeholder="Name">
+    <input type="text" id="flat" placeholder="Flat/Tower">
+    <input type="text" id="mobile" placeholder="Mobile Number">
+    <textarea id="notes" placeholder="Any special instructions? (e.g. less spicy, no onions)" 
+rows="1"
+style="width:100%;margin-top:8px;border:1px solid #ddd;border-radius:6px;padding:6px;font-family:inherit;resize:none;overflow:hidden;"
+oninput="autoGrow(this)"></textarea>
+  </div>
+  
+
+  <div id="repeatContainer" style="display:none;">
+    <button id="repeatBtn" onclick="repeatOrder()">🔁 Repeat Last Order</button>
+  </div>
+
+  <div style="text-align:center;margin-top:1rem;">
+    <p><strong>💰 Payment after delivery</strong></p>
+    <p style="color:#e65c00;font-weight:500;margin-top:0.5rem;">
+      😋 Taste first, pay later, because great food should win your heart before your wallet!
+    </p>
+    <p style="font-size:0.9rem;margin-top:0.3rem;">
+      QR for payment will be shared once food is delivered
+    </p>
+  </div>
+
+  <button id="checkout" onclick="placeOrder()">✅ Place Order on WhatsApp</button>
+</div>
+
+<footer>
+  💵 Cash / UPI accepted after delivery.<br>
+  📞 93563 96873 | 📧 snackattack549@gmail.com<br>
+  📍 Yashwin Orizzonte, Kharadi – Pune<br>
+  <span style="color:#ff6f00;">Made with ❤️ in Kharadi</span>
+</footer>
+
+<script>
+let cart = [];
+const toast = document.getElementById("toast");
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2000);
+}
+
+function autoGrow(element) {
+  element.style.height = "auto";
+  element.style.height = (element.scrollHeight) + "px";
+}
+
+function toggleCart() {
+  const c = document.getElementById("cart");
+  c.style.display = (c.style.display === "block") ? "none" : "block";
+}
+
+function scrollToCategory(id) {
+  document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+}
+
+function addToCart(name, price) {
+  const existing = cart.find(i => i.name === name);
+  if (existing) {
+    existing.qty++;
+  } else {
+    cart.push({ name, price, qty: 1 });
+  }
+  renderCart();
+  renderMenuButtons();
+  showToast(`Added ${name}`);
+}
+
+function updateQty(i, q) {
+  if (q <= 0) {
+    removeItem(i);
+  } else {
+    cart[i].qty = q;
+  }
+  renderCart();
+  renderMenuButtons();
+}
+
+function removeItem(i) {
+  const itemName = cart[i].name;
+  cart.splice(i, 1);
+  renderCart();
+  renderMenuButtons();
+  showToast(`Removed ${itemName}`);
+}
+
+function renderMenuButtons() {
+  document.querySelectorAll(".item").forEach(div => {
+    const name = div.dataset.name;
+    const btnCell = div.querySelector("span.price");
+
+    // Store original price only once
+    if (!btnCell.dataset.price) {
+      const basePrice = parseInt(btnCell.textContent.replace(/[^\d]/g, '')) || 0;
+      btnCell.dataset.price = basePrice;
+    }
+
+    const price = parseInt(btnCell.dataset.price);
+    const existing = cart.find(i => i.name === name);
+
+    if (existing) {
+      btnCell.innerHTML = `
+        ₹${price}
+        <span class="qty-controls">
+          <button class="qty-btn" onclick="changeQty('${name}', -1)">−</button>
+          <span class="qty-number">${existing.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${name}', 1)">+</button>
+        </span>`;
+    } else {
+      btnCell.innerHTML = `
+        ₹${price} 
+        <button onclick="addToCart('${name}', ${price})">Add</button>`;
+    }
+  });
+}
+
+
+
+function changeQty(name, delta) {
+  const item = cart.find(i => i.name === name);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) {
+    cart = cart.filter(i => i.name !== name);
+  }
+  renderCart();
+  renderMenuButtons();
+}
+
+function renderCart() {
+  const t = document.getElementById("cartTable");
+  t.innerHTML = "";
+  let total = 0;
+
+  cart.forEach((it, i) => {
+    total += it.price * it.qty;
+    t.innerHTML += `
+      <tr>
+        <td>${it.name}</td>
+        <td>₹${it.price}</td>
+        <td><input type='number' min='1' value='${it.qty}' onchange='updateQty(${i}, this.value)'></td>
+        <td>₹${it.price * it.qty}</td>
+        <td><button onclick='removeItem(${i})' style='background:#dc3545;color:white;border:none;padding:3px 6px;border-radius:4px;cursor:pointer;'>🗑️</button></td>
+      </tr>`;
+  });
+
+  const itemCount = cart.reduce((a,b)=>a+b.qty,0);
+  document.getElementById("total").innerHTML = `<strong>Total: ₹${total}</strong>`;
+  document.getElementById("cartToggle").textContent = `🛒 View Cart (${itemCount} item${itemCount!==1?'s':''} – ₹${total})`;
+  localStorage.setItem("cartInfo", JSON.stringify(cart));
+}
+
+function placeOrder() {
+  if (cart.length === 0) { alert("Your cart is empty!"); return; }
+  const n = document.getElementById("name").value.trim();
+  const f = document.getElementById("flat").value.trim();
+  const m = document.getElementById("mobile").value.trim();
+  const notes = document.getElementById("notes").value.trim();
+  if (!n || !f || !m) { alert("Please fill all details before placing the order."); return; }
+  
+
+  localStorage.setItem("userInfo", JSON.stringify({ n, f, m }));
+  localStorage.setItem("lastOrder", JSON.stringify(cart));
+
+  let msg = `*Snack Attack Order*%0A———————————%0A`;
+  cart.forEach(i => { msg += `${i.name} x ${i.qty} = ₹${i.price * i.qty}%0A`; });
+  const tot = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  msg += `———————————%0A*Total:* ₹${tot}%0A*Name:* ${n}%0A*Flat/Tower:* ${f}%0A*Mobile:* ${m}`;
+if (notes) msg += `%0A*Notes:* ${encodeURIComponent(notes)}`;
+
+
+  window.open(`https://wa.me/919356396873?text=${msg}`,"_blank");
+  showToast("✅ Order opened in WhatsApp — confirm to complete!");
+}
+
+function repeatOrder() {
+  const last = JSON.parse(localStorage.getItem("lastOrder")||"[]");
+  if (last.length>0) {
+    cart = last;
+    renderCart();
+    showToast("🔁 Last order restored!");
+  }
+}
+
+window.onload = () => {
+  const u = JSON.parse(localStorage.getItem("userInfo") || "{}");
+  if (u.n) document.getElementById("name").value = u.n;
+  if (u.f) document.getElementById("flat").value = u.f;
+  if (u.m) document.getElementById("mobile").value = u.m;
+
+  const s = localStorage.getItem("cartInfo");
+  if (s) {
+    cart = JSON.parse(s);
+    renderCart();
+  }
+
+  const lastOrder = localStorage.getItem("lastOrder");
+  if (lastOrder) document.getElementById("repeatContainer").style.display = "block";
+
+  if (s && JSON.parse(s).length > 0) {
+    showToast("👋 Welcome back! Your last cart is still here.");
+  }
+};
+</script>
+
+<script>
+/* ========= ✨ Snack Attack UX Enhancements ✨ ========= */
+
+// Fade-in animation on scroll
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add("visible");
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll("section").forEach(sec => {
+  sec.classList.add("fade-in");
+  observer.observe(sec);
+});
+
+// Add fade-in CSS dynamically
+const style = document.createElement("style");
+style.textContent = `
+.fade-in {opacity:0; transform:translateY(25px); transition:all .6s ease;}
+.fade-in.visible {opacity:1; transform:none;}
+.item.highlight {background:#fff8e1; transition:background 1s;}
+.add-fly {position:fixed; pointer-events:none; z-index:2000; animation:fly .8s cubic-bezier(.25,.8,.5,1);}
+@keyframes fly {0%{transform:scale(1) translateY(0); opacity:1;}
+100%{transform:scale(.4) translate(180px,-500px); opacity:0;}}
+#miniCartBar {
+  position:fixed; bottom:60px; left:50%; transform:translateX(-50%);
+  background:#ff6f00; color:#fff; font-weight:600;
+  padding:0.6rem 1.2rem; border-radius:30px; box-shadow:0 4px 8px rgba(0,0,0,.2);
+  cursor:pointer; z-index:999;
+  display:none; align-items:center; gap:8px;
+}
+@media(max-width:600px){#miniCartBar{bottom:70px;}}
+`;
+document.head.appendChild(style);
+
+// Mini cart bar element
+const miniBar = document.createElement("div");
+miniBar.id = "miniCartBar";
+miniBar.innerHTML = "🛒 0 items • ₹0";
+miniBar.onclick = () => toggleCart();
+document.body.appendChild(miniBar);
+
+// Override renderCart to update mini cart + reorder prompt
+const origRenderCart = renderCart;
+renderCart = function() {
+  origRenderCart();
+  const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const items = cart.reduce((s,i)=>s+i.qty,0);
+  if (items>0) {
+    miniBar.style.display = "flex";
+    miniBar.innerHTML = `🛒 ${items} item${items!==1?"s":""} • ₹${total}`;
+  } else {
+    miniBar.style.display = "none";
+  }
+};
+
+// Animated Add button + fly-to-cart
+document.body.addEventListener("click", e => {
+  if (e.target.tagName==="BUTTON" && e.target.textContent==="Add") {
+    const btn = e.target;
+    const emoji = btn.closest(".item").querySelector("span:first-child").textContent.trim().charAt(0);
+    const fly = document.createElement("div");
+    fly.className = "add-fly";
+    fly.textContent = emoji;
+    const rect = btn.getBoundingClientRect();
+    fly.style.left = rect.left+"px";
+    fly.style.top = rect.top+"px";
+    document.body.appendChild(fly);
+    setTimeout(()=>fly.remove(),800);
+    btn.classList.add("pulse");
+    setTimeout(()=>btn.classList.remove("pulse"),300);
+    const item = btn.closest(".item");
+    item.classList.add("highlight");
+    setTimeout(()=>item.classList.remove("highlight"),1200);
+  }
+});
+
+// Pulse style
+const pulse = document.createElement("style");
+pulse.textContent = `.pulse{transform:scale(1.1); transition:transform .2s;}
+.pulse:active{transform:scale(.9);}`;
+document.head.appendChild(pulse);
+
+// Welcome reorder suggestion
+window.addEventListener("load",()=>{
+  const last = localStorage.getItem("lastOrder");
+  if(last && JSON.parse(last).length>0 && cart.length===0){
+    const toastBox=document.getElementById("toast");
+    toastBox.innerHTML="🔁 Want to reorder your last meal? <button style='margin-left:6px;padding:3px 6px;border:none;background:#fff;color:#0a8f08;border-radius:4px;font-weight:600;cursor:pointer;' onclick='repeatOrder()'>Reorder</button>";
+    toastBox.classList.add("show");
+    setTimeout(()=>toastBox.classList.remove("show"),5000);
+  }
+});
+
+// “Add to home screen” notice (Android)
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault();
+  const installBtn=document.createElement("div");
+  installBtn.style="position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:#ffb300;color:#000;padding:.7rem 1.4rem;border-radius:30px;font-weight:600;cursor:pointer;z-index:999;";
+  installBtn.textContent="📲 Add Snack Attack to Home Screen";
+  document.body.appendChild(installBtn);
+  installBtn.onclick=()=>{ e.prompt(); installBtn.remove(); };
+});
+
+// ETA messages after placing order
+const origPlaceOrder=placeOrder;
+placeOrder=function(){
+  origPlaceOrder();
+  setTimeout(()=>{
+    showToast("👨‍🍳 Your order’s being prepared…");
+    setTimeout(()=>showToast("🏍️ Out for delivery soon!"),8000);
+  },3000);
+};
+</script>
+</body>
+</html>
