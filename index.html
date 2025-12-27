@@ -141,11 +141,11 @@
     border-bottom: 1px solid #ffe082;
   }
 
-/* 🛒 View Cart Button */
+/* 🛒 View Cart Floating Button */
 #cartToggle {
   position: fixed;
-  bottom: 70px; /* ⬆ lifted above Place Order button */
-  right: 15px;
+  bottom: 100px; /* lifted above the tagline */
+  right: 20px;
   background: var(--orange);
   color: #fff;
   padding: 0.9rem 1.3rem;
@@ -154,14 +154,21 @@
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
-  z-index: 1500; /* ensure always above content */
+  z-index: 1400;
   box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-/* 🛍️ Mini floating cart summary bar */
+#cartToggle.hide {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px);
+}
+
+/* 📦 Mini Floating Cart Bar */
 #miniCartBar {
   position: fixed;
-  bottom: 120px; /* ⬆ moved higher */
+  bottom: 150px; /* lifted so it never clashes with the up arrow */
   left: 50%;
   transform: translateX(-50%);
   background: #ff6f00;
@@ -171,16 +178,43 @@
   border-radius: 30px;
   box-shadow: 0 4px 8px rgba(0,0,0,.25);
   cursor: pointer;
-  z-index: 1500;
+  z-index: 1300;
   display: none;
   align-items: center;
   gap: 8px;
 }
 
-@media (max-width: 600px) {
-  #cartToggle { bottom: 80px; }  /* Adjust for mobile safe area */
-  #miniCartBar { bottom: 130px; }
+/* ⬆️ Scroll to Top Button */
+#scrollTopBtn {
+  position: fixed;
+  bottom: 25px; /* moved down to clear cart total area */
+  right: 20px;
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 0.8rem;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 1200;
 }
+
+#scrollTopBtn.show {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+
+/* 📱 Mobile tweak */
+@media (max-width: 600px) {
+  #cartToggle { bottom: 120px; }
+  #miniCartBar { bottom: 160px; }
+  #scrollTopBtn { bottom: 35px; }
+}
+
 
 
   #cart {
