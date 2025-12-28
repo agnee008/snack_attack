@@ -894,52 +894,66 @@
     localStorage.setItem("userInfo", JSON.stringify({ n }));
 
     const deliveryOption = document.querySelector('input[name="delivery"]:checked')?.value;
-  let deliveryText = "";
+    let deliveryText = "";
 
-  if (deliveryOption === "schedule") {
-    const date = document.getElementById("scheduleDate").value;
-    const time = document.getElementById("scheduleTime").value;
-
-    if (!date || !time) {
-      showToast("⚠️ Please select both date and time for scheduled delivery!", 5000);
-      return;
-    }
-
-    // Parse date/time to validate
-    const selectedDate = new Date(`${date}T${time}`);
-    const day = selectedDate.getDay(); // 0 = Sunday, 6 = Saturday
-    const [hour, minute] = time.split(":").map(Number);
-    const totalMinutes = hour * 60 + minute;
-
-    // Kitchen hours
-    let open = 0;
-    let close = 0;
-    if (day === 0 || day === 6) {
-      // Weekend: 12:00 PM - 10:00 PM
-      open = 12 * 60;
-      close = 22 * 60;
+    if (deliveryOption === "schedule") {
+      const date = document.getElementById("scheduleDate").value;
+      const time = document.getElementById("scheduleTime").value;
+    
+      if (!date || !time) {
+        showToast("⚠️ Please select both date and time for scheduled delivery!", 5000);
+        return;
+      }
+    
+      const selectedDateTime = new Date(`${date}T${time}`);
+      const now = new Date();
+    
+      // ✅ Kitchen hours
+      const day = selectedDateTime.getDay();
+      const [hour, minute] = time.split(":").map(Number);
+      const totalMinutes = hour * 60 + minute;
+    
+      let open, close;
+      if (day === 0 || day === 6) {
+        open = 12 * 60; // 12:00 PM
+        close = 22 * 60; // 10:00 PM
+      } else {
+        open = 10 * 60 + 30; // 10:30 AM
+        close = 22 * 60; // 10:00 PM
+      }
+    
+      // ✅ Prevent past or too-soon times (for today only)
+      const isToday = selectedDateTime.toDateString() === now.toDateString();
+      const diffMinutes = (selectedDateTime - now) / 60000;
+    
+      if (isToday) {
+        if (diffMinutes < 0) {
+          showToast("⏰ You can't schedule a time in the past!", 5000);
+          return;
+        }
+        if (diffMinutes < 60) {
+          showToast("🕐 Please schedule at least 1 hour from now!", 5000);
+          return;
+        }
+      }
+    
+      // ✅ Prevent outside kitchen hours
+      if (totalMinutes < open || totalMinutes > close) {
+        showToast("🍳 Kitchen open 10:30 AM–10:00 PM (weekdays) & 12:00 PM–10:00 PM (weekends).", 7000);
+        return;
+      }
+    
+      // ✅ Format display text
+      const formattedTime = new Date(`1970-01-01T${time}`).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    
+      deliveryText = `\n*Scheduled Delivery:* ${date} at ${formattedTime}`;
     } else {
-      // Weekday: 10:30 AM - 10:00 PM
-      open = 10 * 60 + 30;
-      close = 22 * 60;
+      deliveryText = "\n*Delivery:* Now (20–30 mins)";
     }
-
-    if (totalMinutes < open || totalMinutes > close) {
-      showToast("🕒 Sorry, our kitchen is open 10:30 AM–10:00 PM (weekdays) and 12:00 PM–10:00 PM (weekends).", 7000);
-      return;
-    }
-
-    // Format time neatly
-    const formattedTime = new Date(`1970-01-01T${time}`).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-    deliveryText = `\n*Scheduled Delivery:* ${date} at ${formattedTime}`;
-  } else {
-    deliveryText = "\n*Delivery:* Now (20–30 mins)";
-  }
-
+  
 
   
     // ✅ Prepare WhatsApp message
@@ -1055,22 +1069,79 @@
         document.getElementById("scheduleFields").style.display = showSchedule ? "block" : "none";
       }
     });
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("scheduleDate").setAttribute("min", today);
-    
+
+    // ✅ Date & Time Scheduling Logic (with same-day time restriction)
     const dateInput = document.getElementById("scheduleDate");
     const timeInput = document.getElementById("scheduleTime");
-    
+
+    // Minimum selectable date = today
+    const today = new Date().toISOString().split("T")[0];
+    dateInput.min = today;
+
+    // Get kitchen open/close hours for any date
+    function getKitchenHoursFor(dateValue) {
+      const day = new Date(dateValue).getDay();
+      if (day === 0 || day === 6) {
+        // Weekend
+        return { openHour: 12, openMin: 0, closeHour: 22, closeMin: 0 };
+      }
+      // Weekday
+      return { openHour: 10, openMin: 30, closeHour: 22, closeMin: 0 };
+    }
+
+    // When user picks a date
     dateInput.addEventListener("change", () => {
-      const selected = new Date(dateInput.value);
-      const day = selected.getDay();
-      
-      let minTime = "10:30";
-      if (day === 0 || day === 6) minTime = "12:00"; // weekend starts later
-      
-      timeInput.min = minTime;
-      timeInput.max = "22:00";
+      const { openHour, openMin, closeHour, closeMin } = getKitchenHoursFor(dateInput.value);
+      const openTime = `${String(openHour).padStart(2, "0")}:${String(openMin).padStart(2, "0")}`;
+      const closeTime = `${String(closeHour).padStart(2, "0")}:${String(closeMin).padStart(2, "0")}`;
+      timeInput.min = openTime;
+      timeInput.max = closeTime;
+
+      // Auto-correct if previously selected time is outside valid range
+      if (timeInput.value) {
+        const [h, m] = timeInput.value.split(":").map(Number);
+        const total = h * 60 + m;
+        const open = openHour * 60 + openMin;
+        const close = closeHour * 60 + closeMin;
+        if (total < open) timeInput.value = openTime;
+        if (total > close) timeInput.value = closeTime;
+      }
     });
+
+    // When user selects or changes time
+    timeInput.addEventListener("change", () => {
+      if (!dateInput.value) return;
+
+      const selectedDate = new Date(dateInput.value);
+      const now = new Date();
+
+      const { openHour, openMin, closeHour, closeMin } = getKitchenHoursFor(dateInput.value);
+      const [h, m] = timeInput.value.split(":").map(Number);
+      const selectedMinutes = h * 60 + m;
+      const openMinutes = openHour * 60 + openMin;
+      const closeMinutes = closeHour * 60 + closeMin;
+
+      // Calculate minutes from midnight for now
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const isToday = selectedDate.toDateString() === now.toDateString();
+
+      // Validate same-day schedule
+      if (isToday && selectedMinutes < nowMinutes) {
+        timeInput.value = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+        showToast("⏰ Can't select a past time for today!", 3500);
+        return;
+      }
+
+      // Validate kitchen hours
+      if (selectedMinutes < openMinutes) {
+        timeInput.value = `${String(openHour).padStart(2, "0")}:${String(openMin).padStart(2, "0")}`;
+        showToast("🕒 Too early — kitchen opens later!", 3500);
+      } else if (selectedMinutes > closeMinutes) {
+        timeInput.value = `${String(closeHour).padStart(2, "0")}:${String(closeMin).padStart(2, "0")}`;
+        showToast("🌙 Too late — kitchen closes at 10 PM!", 3500);
+      }
+    });
+
     
 </script>
 
