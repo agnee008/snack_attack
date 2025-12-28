@@ -118,20 +118,22 @@
 
   .toast {
     position: fixed;
-    bottom: 90px;
+    bottom: 140px;
     left: 50%;
     transform: translateX(-50%);
     background: var(--green);
     color: #fff;
-    padding: .6rem 1rem;
-    border-radius: 6px;
+    padding: 0.8rem 1.4rem;
+    border-radius: 8px;
     opacity: 0;
-    transition: opacity .3s;
-    font-size: 0.9rem;
-    z-index: 9999;
+    transition: opacity 0.4s ease, transform 0.4s ease; /* smoother animation */
+    font-size: 0.95rem;
+    font-weight: 500;
+    z-index: 99999;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,.25);
   }
-  .toast.show { opacity: 1; }
-
+  
   .delivery-banner {
     text-align: center;
     background: #fff8e1;
@@ -248,19 +250,33 @@
     opacity: 1;
   }
 
-  #checkout, #repeatBtn {
-    background: var(--green);
-    color: #fff;
-    border: none;
-    width: 100%;
-    padding: .8rem;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    margin-top: .6rem;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-  }
+/* Make Place Order button always fully clickable and above everything */
+#checkout {
+  position: relative;
+  z-index: 5000; /* ensure it's above floating buttons */
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--green);
+  color: #fff;
+  border: none;
+  padding: 1rem;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: background 0.3s ease, transform 0.1s ease;
+}
+
+#checkout:hover {
+  background: #0a7f07;
+}
+
+#checkout:active {
+  transform: scale(0.97);
+}
+
   /* ✨ Added: Subtle pulse for Place Order button */
   #checkout.pulse { animation: pulseEffect 1.6s infinite; }
   @keyframes pulseEffect {
@@ -364,6 +380,13 @@
   #scrollTopBtn {
     bottom: 110px !important;
   }
+}
+
+/* ✅ Toast visible state */
+.toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(-5px);
 }
 
 </style>
@@ -564,20 +587,53 @@
   <p id="total" style="text-align:right;font-weight:600;margin-top:0.5rem;"></p>
 
   <div style="margin-top:.6rem;">
-    <input type="text" id="name" placeholder="Name">
-    <input type="text" id="flat" placeholder="Wing & Flat number (e.g. D-2601)">
-    <input type="text" id="mobile" placeholder="Mobile Number">
-    <textarea id="notes" placeholder="Any special instructions? (e.g. less spicy, no onions)"
-      rows="1"
-      style="width:100%;margin-top:8px;border:1px solid #ddd;border-radius:6px;padding:6px;font-family:inherit;resize:none;overflow:hidden;"
-      oninput="autoGrow(this)"></textarea>
+    <input type="text" id="name" placeholder="Name (optional)">
+    <input type="text" id="flat" placeholder="Wing & Flat number (e.g. D-2601) *required">
+    <input type="text" id="mobile" placeholder="Mobile Number (optional)">
+    <textarea id="notes"
+  placeholder="Any special instructions? (e.g. less spicy, no onions)"
+  rows="1"
+  style="width:100%;margin-top:8px;border:1px solid #ddd;border-radius:6px;
+  padding:6px;font-family:inherit;resize:none;overflow:hidden;"
+  oninput="autoGrow(this)"></textarea>
+
+  
+    <!-- ✅ Add this line -->
+    <p id="formWarning"
+      style="color:#d32f2f;font-size:0.9rem;font-weight:600;margin-top:6px;display:none;">
+      ⚠️ Please enter your Wing & Flat number (e.g. D-2601)
+    </p>
   </div>
+  
 
   <div id="repeatContainer" style="display:none;">
     <button id="repeatBtn" onclick="repeatOrder()">🔁 Repeat Last Order</button>
   </div>
 
   <div style="text-align:center;margin-top:1rem;">
+    <div id="deliveryOptions" style="margin-top:1rem;">
+      <p style="font-weight:600;margin-bottom:6px;">🚚 Delivery Option</p>
+    
+      <label style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <input type="radio" name="delivery" value="now" checked>
+        Deliver Now (20–30 mins)
+      </label>
+    
+      <label style="display:flex;align-items:center;gap:6px;">
+        <input type="radio" name="delivery" value="schedule">
+        Schedule for Later
+      </label>
+    
+      <div id="scheduleFields" style="margin-top:8px;display:none;">
+        <input type="date" id="scheduleDate"
+          style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px;margin-bottom:6px;font-size:1rem;"
+          min="">
+        <input type="time" id="scheduleTime"
+          style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px;font-size:1rem;">
+      </div>
+    </div>
+    
+    
     <p><strong>💰 Payment after delivery</strong></p>
   </div>
 
@@ -594,123 +650,130 @@
 <button id="scrollTopBtn" onclick="scrollToTop()">⬆️</button>
 
 <script>
-
   let cart = [];
   const toast = document.getElementById("toast");
+  // ✅ Check kitchen hours and show overlay if closed
+  function checkKitchenHours() {
+    const now = new Date();
+    // now.setHours(1);
+    const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const totalMinutes = hour * 60 + minute;
+
+    // Define opening hours
+    let open, close;
+    if (day === 0 || day === 6) {
+      // Weekend: 12:00 PM - 10:00 PM
+      open = 12 * 60;
+      close = 22 * 60;
+    } else {
+      // Weekday: 10:30 AM - 10:00 PM
+      open = 10 * 60 + 30;
+      close = 22 * 60;
+    }
+
+    const isOpen = totalMinutes >= open && totalMinutes <= close;
+
+    if (!isOpen) {
+      document.getElementById("closedOverlay").style.display = "flex";
+      document.body.style.overflow = "hidden"; // prevent scrolling
+    }
+  }
+
   
-  function showToast(msg) {
-    toast.textContent = msg;
+  // ✅ Toast function
+  function showToast(msg, duration = 4000, html = false) {
+    if (html) toast.innerHTML = msg;
+    else toast.textContent = msg;
+  
     toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 4000);
+  
+    // clear any previous timer
+    if (toast.hideTimer) clearTimeout(toast.hideTimer);
+  
+    // respect custom duration
+    toast.hideTimer = setTimeout(() => {
+      toast.classList.remove("show");
+    }, duration);
   }
   
-  function autoGrow(element) {
-    element.style.height = "auto";
-    element.style.height = element.scrollHeight + "px";
+  
+  // ✅ Auto-expand notes
+  function autoGrow(el) {
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
   }
   
-  function toggleCart() {
-    const c = document.getElementById("cart");
-    const scrollBtn = document.getElementById("scrollTopBtn");
-    const cartBtn = document.getElementById("cartToggle");
-  
-    // If the cart is hidden (display:none), re-enable it
-    if (c.style.display === "none") {
-      c.style.display = "block";
-    }
-  
-    // Toggle the "show" class to expand or minimize
-    c.classList.toggle("show");
-  
-    if (c.classList.contains("show")) {
-      // When the cart is open, hide floating controls
-      cartBtn.classList.add("hide");
-      scrollBtn.classList.remove("show");
-    } else {
-      // When minimized, show the floating cart button again
-      cartBtn.classList.remove("hide");
+  // ✅ Highlight added item
+  function highlightItem(name) {
+    const itemDiv = document.querySelector(`.item[data-name="${name}"]`);
+    if (itemDiv) {
+      itemDiv.style.transition = "background 0.3s ease";
+      itemDiv.style.background = "#fff8e1";
+      setTimeout(() => (itemDiv.style.background = "transparent"), 600);
     }
   }
   
-  
-  function minimizeCart() {
-    const c = document.getElementById("cart");
-    c.classList.remove("show");
-    c.style.display = "none";
-  }
-  
-  /* ✅ Override renderCart to update mini cart bar + totals, but keep View Cart toggle working */
-  const originalRender = renderCart;
-  renderCart = function() {
-    originalRender();
-  
-    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const items = cart.reduce((sum, i) => sum + i.qty, 0);
-  
-    // Update mini floating bar
-    const miniBar = document.getElementById("miniCartBar");
-    if (items > 0) {
-      miniBar.style.display = "flex";
-      miniBar.innerHTML = `🛒 ${items} item${items !== 1 ? "s" : ""} • ₹${total}`;
-    } else {
-      miniBar.style.display = "none";
-    }
-  
-    // Sync View Cart button
-    const cartBtn = document.getElementById("cartToggle");
-    if (items > 0) {
-      cartBtn.innerText = `🛒 View Cart (${items} item${items > 1 ? "s" : ""} • ₹${total})`;
-    } else {
-      cartBtn.innerText = "🛒 View Cart (₹0)";
-    }
-  };
-  
-  
-  function scrollToCategory(event, id) {
-    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-    event.target.classList.add("active");
-    document.getElementById(id).scrollIntoView({ behavior: "smooth" });
-  }
-  
+  // ✅ Add to Cart with logic
   function addToCart(name, price) {
     const now = new Date();
     const day = now.getDay(); // 0 = Sunday, 6 = Saturday
     const hour = now.getHours();
   
-    // 🐔 Kolkata Chicken Cutlet – weekend only rule
+    // Kolkata Chicken Cutlet restriction
     if (name.toLowerCase().includes("kolkata chicken cutlet")) {
       if (day !== 6 && day !== 0) {
-        const daysUntilWeekend = day < 6 ? 6 - day : (7 - day);
-        showToast(`🍗 Hold that hunger! Only ${daysUntilWeekend} more day${daysUntilWeekend > 1 ? "s" : ""} till our weekend-only Kolkata Cutlet is back in action!`);
+        const daysUntilWeekend = day < 6 ? 6 - day : 7 - day;
+        showToast(`🍗 Cravings on hold! Only ${daysUntilWeekend} more day${daysUntilWeekend > 1 ? "s" : ""} till our weekend-only cutlet is back!`);
         return;
       }
     }
   
-    // 🫓 Tawa Roti – evening only rule
+    // Tawa Roti restriction
     if (name.toLowerCase().includes("tawa roti")) {
       if (hour < 17 || hour >= 20) {
-        showToast(`🌙 Can’t add now — Tawa Roti is served fresh only between 5 PM and 8 PM!`);
+        showToast(`🌙 Tawa Roti is available only between 5 PM and 8 PM!`);
         return;
       }
     }
   
-    // ✅ Regular add-to-cart logic
-    const itemDiv = document.querySelector(`.item[data-name="${name}"]`);
     const existing = cart.find(i => i.name === name);
-  
-    if (existing) {
-      existing.qty++;
-    } else {
-      cart.push({ name, price, qty: 1 });
-    }
+    if (existing) existing.qty++;
+    else cart.push({ name, price, qty: 1 });
   
     renderCart();
     updateMenuButtons();
     showToast(`Added ${name}`);
+    highlightItem(name);
   }
   
+  // ✅ Decrease directly from menu
+  function decreaseFromMenu(name) {
+    const item = cart.find(i => i.name === name);
+    if (!item) return;
+    item.qty--;
+    if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
+    renderCart();
+    updateMenuButtons();
+  }
   
+  // ✅ Remove item from cart
+  function removeItem(i) {
+    cart.splice(i, 1);
+    renderCart();
+    updateMenuButtons();
+  }
   
+  // ✅ Change quantity in cart
+  function changeQty(i, delta) {
+    cart[i].qty += delta;
+    if (cart[i].qty <= 0) cart.splice(i, 1);
+    renderCart();
+    updateMenuButtons();
+  }
+  
+  // ✅ Render Cart
   function renderCart() {
     const t = document.getElementById("cartTable");
     t.innerHTML = "";
@@ -735,303 +798,301 @@
     });
   
     document.getElementById("total").innerHTML = `<strong>Total: ₹${total}</strong>`;
-  
     const cartBtn = document.getElementById("cartToggle");
     if (cart.length > 0) {
-      const items = cart.reduce((sum, i) => sum + i.qty, 0);
-      cartBtn.innerText = `🛒 View Cart (${items} item${items > 1 ? "s" : ""} • ₹${total})`;
+      const items = cart.reduce((s, i) => s + i.qty, 0);
+      cartBtn.innerText = `🛒 View Cart (${items} • ₹${total})`;
     } else {
       cartBtn.innerText = "🛒 View Cart (₹0)";
     }
   
-    updateMenuButtons(); // keep menu synced
+    updateMenuButtons();
   }
   
-  function changeQty(i, delta) {
-    cart[i].qty += delta;
-    if (cart[i].qty <= 0) cart.splice(i, 1);
-    renderCart();
-  }
-  
-  function updateQty(i, q) {
-    if (q <= 0) cart.splice(i, 1);
-    else cart[i].qty = q;
-    renderCart();
-  }
-
-
+  // ✅ Update Add Buttons
   function updateMenuButtons() {
     document.querySelectorAll(".item").forEach(div => {
       const name = div.getAttribute("data-name");
       const priceText = div.querySelector(".price").textContent;
       const cleanPrice = parseInt(priceText.match(/₹\s*(\d+)/)?.[1] || 0);
       const item = cart.find(i => i.name === name);
-      const btnContainer = div.querySelector("span.price");
+      const priceSpan = div.querySelector(".price");
   
       if (item) {
-        btnContainer.innerHTML = `₹${item.price} 
+        priceSpan.innerHTML = `
+          ₹${item.price}
           <div style="display:inline-flex;align-items:center;gap:5px;margin-left:8px;">
-            <button onclick="addToCart('${name}', ${item.price})" style="background:#ff6f00;color:#fff;border:none;border-radius:5px;padding:2px 6px;font-weight:700;">+</button>
-            <span>${item.qty}</span>
             <button onclick="decreaseFromMenu('${name}')" style="background:#ffb300;color:#000;border:none;border-radius:5px;padding:2px 6px;font-weight:700;">−</button>
+            <span>${item.qty}</span>
+            <button onclick="addToCart('${name}', ${item.price})" style="background:#ff6f00;color:#fff;border:none;border-radius:5px;padding:2px 6px;font-weight:700;">+</button>
           </div>`;
       } else {
-        btnContainer.innerHTML = `₹${cleanPrice} <button onclick="addToCart('${name}', ${cleanPrice})">Add</button>`;
+        priceSpan.innerHTML = `₹${cleanPrice} <button onclick="addToCart('${name}', ${cleanPrice})">Add</button>`;
       }
     });
   }
   
-  
-  function decreaseFromMenu(name) {
-    const item = cart.find(i => i.name === name);
-    if (item) {
-      item.qty--;
-      if (item.qty <= 0) cart = cart.filter(i => i.name !== name);
-      renderCart();
+  // ✅ Toggle Cart Panel
+  function toggleCart() {
+    const c = document.getElementById("cart");
+    const btn = document.getElementById("cartToggle");
+    if (c.classList.contains("show")) {
+      c.classList.remove("show");
+      setTimeout(() => (c.style.display = "none"), 300);
+      btn.classList.remove("hide");
+    } else {
+      c.style.display = "block";
+      setTimeout(() => c.classList.add("show"), 50);
+      btn.classList.add("hide");
     }
   }
   
-  
-  function removeItem(i) {
-    cart.splice(i, 1);
-    renderCart();
+  // ✅ Minimize Cart
+  function minimizeCart() {
+    const c = document.getElementById("cart");
+    c.classList.remove("show");
+    c.style.display = "none";
+    document.getElementById("cartToggle").classList.remove("hide");
   }
   
+  // ✅ Place Order on WhatsApp
   function placeOrder() {
-    if (cart.length === 0) return alert("Your cart is empty!");
-    
+    if (cart.length === 0) {
+      alert("Your cart is empty!");
+      return;
+    }
+  
     const n = document.getElementById("name").value.trim();
     const f = document.getElementById("flat").value.trim();
     const m = document.getElementById("mobile").value.trim();
     const notes = document.getElementById("notes").value.trim();
+    const warning = document.getElementById("formWarning");
   
-    if (!n || !f || !m) {
-      alert("Please fill all details before placing the order.");
+    // ✅ Validate Wing & Flat field
+    if (!f) {
+      if (warning) {
+        warning.style.display = "block";
+        warning.textContent = "⚠️ Please enter your Wing & Flat number (e.g. D-2601)";
+        const flatInput = document.getElementById("flat");
+        flatInput.style.borderColor = "#d32f2f";
+        flatInput.style.transition = "all 0.3s";
+  
+        // Add a short shake effect
+        flatInput.style.transform = "translateX(-3px)";
+        setTimeout(() => flatInput.style.transform = "translateX(3px)", 100);
+        setTimeout(() => flatInput.style.transform = "translateX(0)", 200);
+  
+        setTimeout(() => {
+          warning.style.display = "none";
+          flatInput.style.borderColor = "#ffb300";
+        }, 4000);
+      }
       return;
     }
-  
-    // 🕒 Format current date and time
-    const now = new Date();
-    const options = { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" };
-    const formattedTime = now.toLocaleString("en-IN", options).replace(",", "");
-  
-    // 🧾 Build order message
-    let msg = `*Snack Attack Order*\n———————————\n`;
-    cart.forEach(i => {
-      msg += `${i.name} x ${i.qty} = ₹${i.price * i.qty}\n`;
-    });
-  
-    const tot = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    msg += `———————————\n`;
-    msg += `*Total:* ₹${tot}\n`;
-    msg += `*Name:* ${n}\n`;
-    msg += `*Wing & Flat:* ${f}\n`;
-    msg += `*Mobile:* ${m}\n`;
-    msg += `*Ordered on:* ${formattedTime}`;
-  
-    if (notes) msg += `\n*Notes:* ${notes}`;
-  
-    // ✅ Encode entire message for WhatsApp
-    const encodedMsg = encodeURIComponent(msg);
-    const whatsappUrl = `https://wa.me/919356396873?text=${encodedMsg}`;
-  
-    window.open(whatsappUrl, "_blank");
-    confettiBurst();
-    showToast("✅ Order opened in WhatsApp!");
-  }
-  
-  /* ✨ Added: Confetti burst after checkout */
-  function confettiBurst() {
-    const count = 40;
-    for (let i = 0; i < count; i++) {
-      const conf = document.createElement("div");
-      conf.style.position = "fixed";
-      conf.style.width = "8px";
-      conf.style.height = "8px";
-      conf.style.background = ["#ff6f00","#ffb300","#0a8f08","#fff"][Math.floor(Math.random()*4)];
-      conf.style.left = Math.random()*100+"%";
-      conf.style.top = "0px";
-      conf.style.opacity = 0.9;
-      conf.style.zIndex = 2000;
-      conf.style.transform = `rotate(${Math.random()*360}deg)`;
-      conf.style.transition = "transform 2s ease, top 2s ease, opacity 2s ease";
-      document.body.appendChild(conf);
-      setTimeout(() => {
-        conf.style.top = "100vh";
-        conf.style.transform = `rotate(${Math.random()*720}deg)`;
-        conf.style.opacity = 0;
-      }, 50);
-      setTimeout(() => conf.remove(), 2000);
+
+    // ✅ Save user info
+    localStorage.setItem("userInfo", JSON.stringify({ n }));
+
+    const deliveryOption = document.querySelector('input[name="delivery"]:checked')?.value;
+  let deliveryText = "";
+
+  if (deliveryOption === "schedule") {
+    const date = document.getElementById("scheduleDate").value;
+    const time = document.getElementById("scheduleTime").value;
+
+    if (!date || !time) {
+      showToast("⚠️ Please select both date and time for scheduled delivery!", 5000);
+      return;
     }
+
+    // Parse date/time to validate
+    const selectedDate = new Date(`${date}T${time}`);
+    const day = selectedDate.getDay(); // 0 = Sunday, 6 = Saturday
+    const [hour, minute] = time.split(":").map(Number);
+    const totalMinutes = hour * 60 + minute;
+
+    // Kitchen hours
+    let open = 0;
+    let close = 0;
+    if (day === 0 || day === 6) {
+      // Weekend: 12:00 PM - 10:00 PM
+      open = 12 * 60;
+      close = 22 * 60;
+    } else {
+      // Weekday: 10:30 AM - 10:00 PM
+      open = 10 * 60 + 30;
+      close = 22 * 60;
+    }
+
+    if (totalMinutes < open || totalMinutes > close) {
+      showToast("🕒 Sorry, our kitchen is open 10:30 AM–10:00 PM (weekdays) and 12:00 PM–10:00 PM (weekends).", 7000);
+      return;
+    }
+
+    // Format time neatly
+    const formattedTime = new Date(`1970-01-01T${time}`).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    deliveryText = `\n*Scheduled Delivery:* ${date} at ${formattedTime}`;
+  } else {
+    deliveryText = "\n*Delivery:* Now (20–30 mins)";
+  }
+
+
+  
+    // ✅ Prepare WhatsApp message
+    const tot = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const msgLines = cart.map(i => `${i.name} x ${i.qty} = ₹${i.price * i.qty}`);
+
+    // ✅ Generate unique order ID
+    const orderId = `SA-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    let msg = `*Snack Attack Order*\n*Order ID:* ${orderId}\n———————————\n${msgLines.join("\n")}\n———————————\n*Total:* ₹${tot}\n*Wing & Flat:* ${f}${deliveryText}`;
+    if (n) msg += `\n*Name:* ${n}`;
+    if (m) msg += `\n*Mobile:* ${m}`;
+    if (notes) msg += `\n*Notes:* ${notes}`;
+
+    const url = `https://wa.me/919356396873?text=${encodeURIComponent(msg)}`;
+    localStorage.setItem("lastOrder", JSON.stringify(cart));
+    localStorage.setItem("lastOrderId", orderId);
+
+  
+    // ✅ Open WhatsApp
+    window.open(url, "_blank");
+    showToast("✅ Order opened in WhatsApp!");
+  
+    // ✅ Reset cart
+    cart = [];
+    renderCart();
+    minimizeCart();
   }
   
-  /* ✨ Scroll to Top logic */
-  const scrollBtn = document.getElementById("scrollTopBtn");
-  window.addEventListener("scroll", () => {
-    if (window.scrollY > 400) scrollBtn.classList.add("show");
-    else scrollBtn.classList.remove("show");
-  });
-  function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  
+  
+  // ✅ Reorder
+  function repeatOrder() {
+    const last = JSON.parse(localStorage.getItem("lastOrder") || "[]");
+    if (!last.length) return showToast("No previous order found!");
+    cart = last.map(i => ({ ...i }));
+    renderCart();
+    toggleCart();
+    showToast("🔁 Last order loaded!");
   }
   
-  /* ✨ Personalized greeting */
+  // ✅ Scroll to category
+  function scrollToCategory(event, id) {
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+    event.target.classList.add("active");
+    document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+  }
+  
+  // ✅ Initial setup
+
   window.addEventListener("load", () => {
+    checkKitchenHours();
+    renderCart();
+  
+    // ✅ Retrieve stored user info and last order
     const user = localStorage.getItem("userInfo");
+    const last = JSON.parse(localStorage.getItem("lastOrder") || "[]");
+  
+    // 👋 Welcome back message
     if (user) {
       const { n } = JSON.parse(user);
-      if (n) showToast(`👋 Welcome back, ${n.split(" ")[0]}!`);
+      if (n) showToast(`👋 Welcome back, ${n.split(" ")[0]}!`, 8000);
     }
-    document.getElementById("checkout").classList.add("pulse");
-  });
-  renderCart();
-
-  window.addEventListener("load", () => {
-    const day = new Date().getDay();
-    if (day !== 6 && day !== 0) {
-      const btn = document.querySelector(`.item[data-name="Kolkata Chicken Cutlet (2 pcs)"] button`);
-      if (btn) {
-        btn.disabled = true;
-        btn.style.opacity = 0.6;
-        btn.style.cursor = "not-allowed";
-        btn.title = "Available on weekends only";
-      }
+  
+    // 🔁 Reorder suggestion (only if previous order exists)
+    if (last.length > 0) {
+      setTimeout(() => {
+        showToast(
+          `🔁 Want to reorder your last meal? 
+          <button onclick="repeatOrder()" 
+            style="margin-left:6px;padding:4px 8px;border:none;background:#fff;
+            color:#0a8f08;border-radius:4px;font-weight:600;cursor:pointer;">
+            Reorder
+          </button>`,
+          15000, // show for 15 seconds
+          true   // allow HTML content in toast
+        );
+      }, 1200);
     }
   });
   
-  /* ========= ✨ Snack Attack UX Enhancements ✨ ========= */
-// Fade-in animation on scroll
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) e.target.classList.add("visible");
-  });
-}, { threshold: 0.1 });
-document.querySelectorAll("section").forEach(sec => {
-  sec.classList.add("fade-in");
-  observer.observe(sec);
-});
+  
+  
+    // ✅ Retrieve stored user info and last order
+    const user = localStorage.getItem("userInfo");
+    const last = JSON.parse(localStorage.getItem("lastOrder") || "[]");
+  
+    // 👋 Welcome back message
+    if (user) {
+      const { n } = JSON.parse(user);
+      if (n) showToast(`👋 Welcome back, ${n.split(" ")[0]}!`, 8000);
+    }
+  
+    // 🔁 Reorder suggestion (only if previous order exists)
+    if (last.length > 0) {
+      setTimeout(() => {
+        showToast(
+          `🔁 Want to reorder your last meal? 
+          <button onclick="repeatOrder()" 
+            style="margin-left:6px;padding:4px 8px;border:none;background:#fff;
+            color:#0a8f08;border-radius:4px;font-weight:600;cursor:pointer;">
+            Reorder
+          </button>`,
+          15000, // show for 15 seconds
+          true   // allow HTML content in toast
+        );
+      }, 1200);
+    }
 
-// Add fade-in CSS dynamically
-const style = document.createElement("style");
-style.textContent = `
-.fade-in {opacity:0; transform:translateY(25px); transition:all .6s ease;}
-.fade-in.visible {opacity:1; transform:none;}
-.item.highlight {background:#fff8e1; transition:background 1s;}
-.add-fly {position:fixed; pointer-events:none; z-index:2000; animation:fly .8s cubic-bezier(.25,.8,.5,1);}
-@keyframes fly {0%{transform:scale(1) translateY(0); opacity:1;}
-100%{transform:scale(.4) translate(180px,-500px); opacity:0;}}
-#miniCartBar {
-  position:fixed; bottom:60px; left:50%; transform:translateX(-50%);
-  background:#ff6f00; color:#fff; font-weight:600;
-  padding:0.6rem 1.2rem; border-radius:30px; box-shadow:0 4px 8px rgba(0,0,0,.2);
-  cursor:pointer; z-index:999;
-  display:none; align-items:center; gap:8px;
-}
-@media(max-width:600px){#miniCartBar{bottom:70px;}}
-`;
-document.head.appendChild(style);
+    document.addEventListener("change", (e) => {
+      if (e.target.name === "delivery") {
+        const showSchedule = e.target.value === "schedule";
+        document.getElementById("scheduleFields").style.display = showSchedule ? "block" : "none";
+      }
+    });
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("scheduleDate").setAttribute("min", today);
+    
+    const dateInput = document.getElementById("scheduleDate");
+    const timeInput = document.getElementById("scheduleTime");
+    
+    dateInput.addEventListener("change", () => {
+      const selected = new Date(dateInput.value);
+      const day = selected.getDay();
+      
+      let minTime = "10:30";
+      if (day === 0 || day === 6) minTime = "12:00"; // weekend starts later
+      
+      timeInput.min = minTime;
+      timeInput.max = "22:00";
+    });
+    
+</script>
 
-// Mini cart bar element
-const miniBar = document.createElement("div");
-miniBar.id = "miniCartBar";
-miniBar.innerHTML = "🛒 0 items • ₹0";
-miniBar.onclick = () => toggleCart();
-document.body.appendChild(miniBar);
+<!-- 🍳 Kitchen Closed Overlay -->
+<div id="closedOverlay"
+  style="position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(255,255,255,0.95);backdrop-filter:blur(4px);
+  display:none;flex-direction:column;justify-content:center;
+  align-items:center;z-index:99999;text-align:center;padding:1.5rem;">
 
-// Override renderCart to update mini cart + reorder prompt
-const origRenderCart = renderCart;
-renderCart = function() {
-  origRenderCart();
-  const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const items = cart.reduce((s,i)=>s+i.qty,0);
-  if (items>0) {
-    miniBar.style.display = "flex";
-    miniBar.innerHTML = `🛒 ${items} item${items!==1?"s":""} • ₹${total}`;
-  } else {
-    miniBar.style.display = "none";
-  }
-};
+  <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExa2Z6dDhzZGQ4d2RudDd5ZzZ2ZmQ1ZjAybzd2dDJ3MmlvN3h4bWFjZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/jUwpNzg9IcyrK/giphy.gif"
+    alt="Closed kitchen gif"
+    style="width:200px;height:auto;margin-bottom:1rem;border-radius:12px;">
 
-// Animated Add button + fly-to-cart
-document.body.addEventListener("click", e => {
-  if (e.target.tagName==="BUTTON" && e.target.textContent==="Add") {
-    const btn = e.target;
-    const emoji = btn.closest(".item").querySelector("span:first-child").textContent.trim().charAt(0);
-    const fly = document.createElement("div");
-    fly.className = "add-fly";
-    fly.textContent = emoji;
-    const rect = btn.getBoundingClientRect();
-    fly.style.left = rect.left+"px";
-    fly.style.top = rect.top+"px";
-    document.body.appendChild(fly);
-    setTimeout(()=>fly.remove(),800);
-    btn.classList.add("pulse");
-    setTimeout(()=>btn.classList.remove("pulse"),300);
-    const item = btn.closest(".item");
-    item.classList.add("highlight");
-    setTimeout(()=>item.classList.remove("highlight"),1200);
-  }
-});
+  <h2 style="color:#ff6f00;margin-bottom:0.5rem;">😴 Our Kitchen is Closed Right Now!</h2>
+  <p style="font-size:1rem;color:#333;margin-bottom:1rem;">
+    We're open from <br>
+    <strong>🕥 10:30 AM – 10:00 PM (Mon–Fri)</strong><br>
+    <strong>🕛 12:00 PM – 10:00 PM (Sat–Sun)</strong>
+  </p>
+  <p style="color:#555;font-size:0.9rem;">Come back during open hours to place your order 🍽️</p>
+</div>
 
-// Pulse style
-const pulse = document.createElement("style");
-pulse.textContent = `.pulse{transform:scale(1.1); transition:transform .2s;}
-.pulse:active{transform:scale(.9);}`;
-document.head.appendChild(pulse);
-
-// Welcome reorder suggestion
-window.addEventListener("load",()=>{
-  const last = localStorage.getItem("lastOrder");
-  if(last && JSON.parse(last).length>0 && cart.length===0){
-    const toastBox=document.getElementById("toast");
-    toastBox.innerHTML="🔁 Want to reorder your last meal? <button style='margin-left:6px;padding:3px 6px;border:none;background:#fff;color:#0a8f08;border-radius:4px;font-weight:600;cursor:pointer;' onclick='repeatOrder()'>Reorder</button>";
-    toastBox.classList.add("show");
-    setTimeout(()=>toastBox.classList.remove("show"),5000);
-  }
-});
-
-// “Add to home screen” notice (Android)
-window.addEventListener("beforeinstallprompt", e=>{
-  e.preventDefault();
-  const installBtn=document.createElement("div");
-  installBtn.style="position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:#ffb300;color:#000;padding:.7rem 1.4rem;border-radius:30px;font-weight:600;cursor:pointer;z-index:999;";
-  installBtn.textContent="📲 Add Snack Attack to Home Screen";
-  document.body.appendChild(installBtn);
-  installBtn.onclick=()=>{ e.prompt(); installBtn.remove(); };
-});
-
-// ETA messages after placing order
-const origPlaceOrder=placeOrder;
-placeOrder=function(){
-  origPlaceOrder();
-  setTimeout(()=>{
-    showToast("👨‍🍳 Your order’s being prepared…");
-    setTimeout(()=>showToast("🏍️ Out for delivery soon!"),15000);
-  },3000);
-};
-
-window.addEventListener("load", () => {
-  renderCart();
-});
-
-let lastScrollTop = 0;
-const cartBtn = document.getElementById("cartToggle");
-
-window.addEventListener("scroll", () => {
-  const st = window.pageYOffset || document.documentElement.scrollTop;
-
-  if (st > lastScrollTop && st > 150) {
-    cartBtn.classList.add("show");
-  } else if (st < lastScrollTop || st < 150) {
-    cartBtn.classList.remove("show");
-  }
-
-  lastScrollTop = st <= 0 ? 0 : st;
-});
-
-
-  </script>
-  </body>
-  </html>
-
-
+</body>
+</html>
