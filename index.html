@@ -905,15 +905,28 @@
         return;
       }
     
-      const selectedDateTime = new Date(`${date}T${time}`);
+      // ✅ Build date and time safely (mobile-friendly)
+      const [hour, minute] = time.split(":").map(Number);
+      const selectedDateTime = new Date(date);
+      selectedDateTime.setHours(hour, minute, 0, 0);
+    
       const now = new Date();
     
-      // ✅ Kitchen hours
-      const day = selectedDateTime.getDay();
-      const [hour, minute] = time.split(":").map(Number);
-      const totalMinutes = hour * 60 + minute;
+      // ✅ Check for past dates
+      const selectedDateOnly = new Date(date);
+      selectedDateOnly.setHours(0, 0, 0, 0);
     
-      let open, close;
+      const todayOnly = new Date();
+      todayOnly.setHours(0, 0, 0, 0);
+    
+      if (selectedDateOnly < todayOnly) {
+        showToast("📅 You can't schedule an order for a past date!", 5000);
+        return;
+      }
+    
+      // ✅ Kitchen hours by weekday/weekend
+      const day = selectedDateTime.getDay();
+      let open = 0, close = 0;
       if (day === 0 || day === 6) {
         open = 12 * 60; // 12:00 PM
         close = 22 * 60; // 10:00 PM
@@ -922,29 +935,29 @@
         close = 22 * 60; // 10:00 PM
       }
     
-      // ✅ Prevent past or too-soon times (for today only)
-      const isToday = selectedDateTime.toDateString() === now.toDateString();
-      const diffMinutes = (selectedDateTime - now) / 60000;
+      const totalMinutes = hour * 60 + minute;
+      const diffMinutes = (selectedDateTime.getTime() - now.getTime()) / 60000;
+      const isToday = selectedDateOnly.getTime() === todayOnly.getTime();
     
-      if (isToday) {
-        if (diffMinutes < 0) {
-          showToast("⏰ You can't schedule a time in the past!", 5000);
-          return;
-        }
-        if (diffMinutes < 60) {
-          showToast("🕐 Please schedule at least 1 hour from now!", 5000);
-          return;
-        }
-      }
-    
-      // ✅ Prevent outside kitchen hours
-      if (totalMinutes < open || totalMinutes > close) {
-        showToast("🍳 Kitchen open 10:30 AM–10:00 PM (weekdays) & 12:00 PM–10:00 PM (weekends).", 7000);
+      // ✅ Same-day checks
+      if (isToday && diffMinutes < 0) {
+        showToast("⏰ You can't schedule a time in the past!", 5000);
         return;
       }
     
-      // ✅ Format display text
-      const formattedTime = new Date(`1970-01-01T${time}`).toLocaleTimeString([], {
+      if (isToday && diffMinutes < 60) {
+        showToast("🕐 Please schedule at least 1 hour from now!", 5000);
+        return;
+      }
+    
+      // ✅ Outside kitchen hours
+      if (totalMinutes < open || totalMinutes > close) {
+        showToast("🍳 Kitchen open 10:30 AM–10:00 PM (weekdays) & 12:00 PM–10:00 PM (weekends).", 6000);
+        return;
+      }
+    
+      // ✅ Format for WhatsApp message
+      const formattedTime = selectedDateTime.toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       });
@@ -953,8 +966,7 @@
     } else {
       deliveryText = "\n*Delivery:* Now (20–30 mins)";
     }
-  
-
+    
   
     // ✅ Prepare WhatsApp message
     const tot = cart.reduce((s, i) => s + i.price * i.qty, 0);
